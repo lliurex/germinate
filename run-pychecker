@@ -1,0 +1,19 @@
+#! /bin/sh
+set -e
+
+if ! which pychecker >/dev/null 2>&1; then
+	echo "pychecker not installed, so not running it" >&2
+	exit 0
+fi
+
+cleanup () {
+	find germinate -name tests -prune -o -type f \( -name \*.pyc -o -name \*.pyo \) -print0 | xargs -0r rm -f
+}
+trap cleanup EXIT HUP INT QUIT TERM
+
+ret=0
+for x in $(find germinate -name tests -prune -o -name \*.py -printf '%p\n' | sort); do
+	pychecker "$x" | grep "^$x:" && ret=1
+done
+
+exit $ret
