@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """Testing helpers."""
 
 # Copyright (C) 2012 Canonical Ltd.
@@ -24,30 +23,21 @@ import errno
 import io
 import os
 import shutil
-import sys
 import tempfile
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+
+from fixtures import FakeLogger
+import testtools
 
 from germinate.seeds import SeedStructure
 
 
-if sys.version >= "3":
-    def u(s):
-        return s
-else:
-    def u(s):
-        return unicode(s, "unicode_escape")
-
-
-class TestCase(unittest.TestCase):
+class TestCase(testtools.TestCase):
     def __init__(self, *args, **kwargs):
-        unittest.TestCase.__init__(self, *args, **kwargs)
+        super(TestCase, self).__init__(*args, **kwargs)
         self.temp_dir = None
         self.archive_dir = None
         self.seeds_dir = None
+        self.logger = self.useFixture(FakeLogger("germinate"))
 
     def useTempDir(self):
         if self.temp_dir is not None:
@@ -128,14 +118,14 @@ class TestCase(unittest.TestCase):
         seed_path = os.path.join(self.seeds_dir, seed_dist, seed_name)
         self.ensureParentDir(seed_path)
         with io.open(seed_path, "a", encoding="UTF-8") as seed:
-            print(u(" * %s") % pkg, file=seed)
+            print(u" * %s" % pkg, file=seed)
 
     def addSeedSnap(self, seed_dist, seed_name, pkg):
         self.setUpDirs()
         seed_path = os.path.join(self.seeds_dir, seed_dist, seed_name)
         self.ensureParentDir(seed_path)
         with io.open(seed_path, "a", encoding="UTF-8") as seed:
-            print(u(" * snap:%s") % pkg, file=seed)
+            print(u" * snap:%s" % pkg, file=seed)
 
     def openSeedStructure(self, branch):
         return SeedStructure(branch, seed_bases=["file://%s" % self.seeds_dir])

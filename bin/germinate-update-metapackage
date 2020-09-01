@@ -23,14 +23,12 @@
 import sys
 
 try:
-    import imp
-    imp.find_module('germinate.germinator')
+    from germinate.scripts.germinate_update_metapackage import main
 except ImportError:
     # Running from build tree?
     import os
     sys.path.insert(0, os.path.join(sys.path[0], os.pardir))
-
-from germinate.scripts.germinate_update_metapackage import main
+    from germinate.scripts.germinate_update_metapackage import main
 
 if __name__ == "__main__":
     main(sys.argv)

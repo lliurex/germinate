@@ -303,9 +303,9 @@ class GerminatedSeed(object):
                 left_lesser = self._germinator._strictly_outer_seeds(self)
                 right_lesser = other._germinator._strictly_outer_seeds(other)
                 left_close = [l for l in left_lesser
-                                if self.name in l._close_seeds]
+                              if self.name in l._close_seeds]
                 right_close = [l for l in right_lesser
-                                 if other.name in l._close_seeds]
+                               if other.name in l._close_seeds]
                 if left_close != right_close:
                     return False
                 left_branch = self.structure.branch
@@ -753,7 +753,7 @@ class Germinator(object):
 
         for innerseed in self._inner_seeds(seed):
             if (pkg in innerseed._entries or
-                pkg in innerseed._recommends_entries):
+                    pkg in innerseed._recommends_entries):
                 return True
 
         return False
@@ -813,7 +813,7 @@ class Germinator(object):
                 elif name.endswith("-include"):
                     included_seed = name[:-8]
                     if (included_seed not in structure.names and
-                        included_seed != "extra"):
+                            included_seed != "extra"):
                         _logger.error("Cannot include packages from unknown "
                                       "seed: %s", included_seed)
                     else:
@@ -823,7 +823,7 @@ class Germinator(object):
                 elif name.endswith("-exclude"):
                     excluded_seed = name[:-8]
                     if (excluded_seed not in structure.names and
-                        excluded_seed != "extra"):
+                            excluded_seed != "extra"):
                         _logger.error("Cannot exclude packages from unknown "
                                       "seed: %s", excluded_seed)
                     else:
@@ -872,7 +872,9 @@ class Germinator(object):
             if pkg.startswith('(') and pkg.endswith(')'):
                 pkg = pkg[1:-1]
                 if is_snap or pkg.startswith("snap:"):
-                    _logger.warning("Recommends entries cannot be used with snap packages, ignoring %s", pkg)
+                    _logger.warning(
+                        "Recommends entries cannot be used with snap "
+                        "packages, ignoring %s", pkg)
                     continue
                 pkgs = self._filter_packages(self._packages, pkg)
                 if not pkgs:
@@ -882,14 +884,16 @@ class Germinator(object):
                         substvars, pkg))
 
             if is_snap and pkg.startswith('%'):
-                _logger.warning("%% entries cannot be used with snap packages, ignoring %s", pkg)
+                _logger.warning(
+                    "%% entries cannot be used with snap packages, ignoring "
+                    "%s", pkg)
                 continue
 
             if pkg.startswith('%'):
                 pkg = pkg[1:]
                 if pkg in self._sources:
                     pkgs = [p for p in self._sources[pkg]["Binaries"]
-                              if p in self._packages]
+                            if p in self._packages]
                 else:
                     _logger.warning("Unknown source package: %s", pkg)
                     pkgs = []
@@ -908,10 +912,12 @@ class Germinator(object):
             else:
                 if is_snap:
                     for pkg in pkgs:
-                        seedsnaps.extend(self._substitute_seed_vars(substvars, pkg))
+                        seedsnaps.extend(
+                            self._substitute_seed_vars(substvars, pkg))
                 else:
                     for pkg in pkgs:
-                        seedpkgs.extend(self._substitute_seed_vars(substvars, pkg))
+                        seedpkgs.extend(
+                            self._substitute_seed_vars(substvars, pkg))
 
         di_kernel_versions = None
 
@@ -960,7 +966,7 @@ class Germinator(object):
 
         for pkg in self._hints:
             if (self._hints[pkg] == seed.name and
-                not self._already_seeded(seed, pkg)):
+                    not self._already_seeded(seed, pkg)):
                 if pkg in self._packages:
                     if pkg in seedrecommends:
                         seed._recommends_entries.append(pkg)
@@ -1062,8 +1068,11 @@ class Germinator(object):
                     self._add_package(seed, pkg, seed._seed_reason)
             for pkg in self.get_seed_snap_entries(structure, seedname):
                 # avoid collisions with deb packages with the same name
-                self._remember_why(seed._snap_reasons, pkg, seed._seed_reason, False, False)
-                self._remember_why(output._all_snap_reasons, pkg, seed._seed_reason, False, False)
+                self._remember_why(
+                    seed._snap_reasons, pkg, seed._seed_reason, False, False)
+                self._remember_why(
+                    output._all_snap_reasons, pkg, seed._seed_reason,
+                    False, False)
 
             self._di_kernel_versions = None
 
@@ -1140,7 +1149,7 @@ class Germinator(object):
                             "%s", depend)
             return False
         if (seed is not None and
-            self._is_pruned(self._di_kernel_versions, depname)):
+                self._is_pruned(self._di_kernel_versions, depname)):
             return False
         depmultiarch = self._packages[depname]["Multi-Arch"]
         if depqual == "any" and depmultiarch != "allowed":
@@ -1149,7 +1158,7 @@ class Germinator(object):
             if depqual not in (None, "any", "native"):
                 return False
             if (depqual == "native" and
-                depmultiarch not in ("none", "same", "allowed")):
+                    depmultiarch not in ("none", "same", "allowed")):
                 return False
             return self._packagetype[depname] == "deb"
         else:
@@ -1161,7 +1170,7 @@ class Germinator(object):
                 pkgkernver = self._packages[pkg]["Kernel-Version"]
                 depkernver = self._packages[depname]["Kernel-Version"]
                 if (pkgkernver != "" and depkernver != "" and
-                    pkgkernver != depkernver):
+                        pkgkernver != depkernver):
                     return False
                 return True
             else:
@@ -1256,7 +1265,7 @@ class Germinator(object):
         for pkg in output._all:
             fields = ["Pre-Depends", "Depends"]
             if (self._follow_recommends(structure) or
-                self._packages[pkg]["Section"] == "metapackages"):
+                    self._packages[pkg]["Section"] == "metapackages"):
                 fields.append("Recommends")
             for field in fields:
                 for deplist in self._packages[pkg][field]:
@@ -1284,7 +1293,7 @@ class Germinator(object):
 
             fields = ["Pre-Depends", "Depends"]
             if (self._follow_recommends(structure) or
-                self._packages[pkg]["Section"] == "metapackages"):
+                    self._packages[pkg]["Section"] == "metapackages"):
                 fields.append("Recommends")
             fields.extend(BUILD_DEPENDS)
             for field in fields:
@@ -1313,7 +1322,7 @@ class Germinator(object):
                     if trydep in innerseed._not_build:
                         return True
             if (trydep in seed._entries or
-                trydep in seed._recommends_entries):
+                    trydep in seed._recommends_entries):
                 return True
         else:
             return False
@@ -1367,11 +1376,11 @@ class Germinator(object):
         lesserseeds = self._strictly_outer_seeds(seed)
         if close:
             lesserseeds = [l for l in lesserseeds
-                             if seed.name in l._close_seeds]
+                           if seed.name in l._close_seeds]
         for trydep in trylist:
             for lesserseed in lesserseeds:
                 if (trydep in lesserseed._entries or
-                    trydep in lesserseed._recommends_entries):
+                        trydep in lesserseed._recommends_entries):
                     # Has it already been promoted from this seed?
                     already_promoted = False
                     for innerseed in self._inner_seeds(lesserseed):
@@ -1436,10 +1445,10 @@ class Germinator(object):
             # dependency is, then pick all the modules for other allowed
             # kernel versions too.
             if (self._packages[pkg]["Kernel-Version"] == "" and
-                self._packages[dependlist[0]]["Kernel-Version"] != ""):
+                    self._packages[dependlist[0]]["Kernel-Version"] != ""):
                 dependlist = [d for d in dependlist
-                              if not self._di_kernel_versions or
-                                 (self._packages[d]["Kernel-Version"] in
+                              if not self._di_kernel_versions or (
+                                  self._packages[d]["Kernel-Version"] in
                                   self._di_kernel_versions)]
             else:
                 dependlist = [dependlist[0]]
@@ -1472,7 +1481,7 @@ class Germinator(object):
                 # will be a bit inaccurate. We may need another pass for
                 # Recommends to fix this.
                 if self._already_satisfied(
-                    seed, pkg, dep, build_depend, second_class):
+                        seed, pkg, dep, build_depend, second_class):
                     break
             else:
                 firstdep = True
@@ -1583,7 +1592,7 @@ class Germinator(object):
                                   build_tree=build_tree)
 
         if (self._follow_recommends(seed.structure, seed) or
-            self._packages[pkg]["Section"] == "metapackages"):
+                self._packages[pkg]["Section"] == "metapackages"):
             self._add_dependency_tree(seed, pkg,
                                       self._packages[pkg]["Recommends"],
                                       second_class=second_class,
@@ -1616,7 +1625,8 @@ class Germinator(object):
                 else:
                     pkg_srcs.append(pkg_src)
             else:
-                _logger.error("Missing source package: %s (for %s)", pkg_src, pkg)
+                _logger.error(
+                    "Missing source package: %s (for %s)", pkg_src, pkg)
 
         # Use build_tree flag for src
         # Treat all Built-Using as if it's part of build_tree
@@ -1634,10 +1644,9 @@ class Germinator(object):
 
             if self._follow_build_depends(seed.structure, seed):
                 for build_depends in BUILD_DEPENDS:
-                    self._add_dependency_tree(seed, pkg,
-                                              self._sources[pkg_src][build_depends],
-                                              build_depend=True)
-
+                    self._add_dependency_tree(
+                        seed, pkg, self._sources[pkg_src][build_depends],
+                        build_depend=True)
 
     def _rescue_includes(self, structure, seedname, rescue_seedname,
                          build_tree):
@@ -1650,7 +1659,7 @@ class Germinator(object):
             return
 
         if (rescue_seedname not in structure.names and
-            rescue_seedname != "extra"):
+                rescue_seedname != "extra"):
             return
 
         # Find all the source packages.
@@ -1669,7 +1678,7 @@ class Germinator(object):
         # patterns.
         for src in rescue_srcs:
             rescue = [p for p in self._sources[src]["Binaries"]
-                        if p in self._packages]
+                      if p in self._packages]
             included = set()
             if rescue_seedname in seed._includes:
                 for include in seed._includes[rescue_seedname]:
@@ -1726,17 +1735,13 @@ class Germinator(object):
                 continue
             output -= innerseed._depends
         # Take care to preserve the original ordering.
-        # Use a temporary variable to work around a pychecker bug.
-        ret = [e for e in seed._entries if e in output]
-        return ret
+        return [e for e in seed._entries if e in output]
 
     def get_seed_entries(self, structure, seedname):
         """Return the explicitly seeded entries for this seed."""
-        # Use a temporary variable to work around a pychecker bug.
-        ret = [
+        return [
             e for e in self._get_seed_entries(structure, seedname)
             if not isinstance(e, SeedKernelVersions)]
-        return ret
 
     def _get_seed_recommends_entries(self, structure, seedname):
         """Return the explicitly seeded Recommends entries for this seed.
@@ -1751,17 +1756,13 @@ class Germinator(object):
                 continue
             output -= innerseed._depends
         # Take care to preserve the original ordering.
-        # Use a temporary variable to work around a pychecker bug.
-        ret = [e for e in seed._recommends_entries if e in output]
-        return ret
+        return [e for e in seed._recommends_entries if e in output]
 
     def get_seed_recommends_entries(self, structure, seedname):
         """Return the explicitly seeded Recommends entries for this seed."""
-        # Use a temporary variable to work around a pychecker bug.
-        ret = [
+        return [
             e for e in self._get_seed_recommends_entries(structure, seedname)
             if not isinstance(e, SeedKernelVersions)]
-        return ret
 
     def get_seed_snap_entries(self, structure, seedname):
         """Return the explicitly seeded snap entries for this seed."""
@@ -1772,9 +1773,7 @@ class Germinator(object):
                 continue
             output -= innerseed._depends
         # Take care to preserve the original ordering.
-        # Use a temporary variable to work around a pychecker bug.
-        ret = [e for e in seed._snaps if e in output]
-        return ret
+        return [e for e in seed._snaps if e in output]
 
     def get_snaps(self, structure, seedname):
         """ Return the explicitly seeded snap entries for this seed."""
@@ -1980,8 +1979,8 @@ class Germinator(object):
         for seedname in structure.names:
             all_snaps |= self.get_snaps(structure, seedname)
 
-        self._write_snap_list(self._output[structure]._all_snap_reasons, filename,
-                              all_snaps)
+        self._write_snap_list(self._output[structure]._all_snap_reasons,
+                              filename, all_snaps)
 
     def write_all_source_list(self, structure, filename):
         """Write all the source packages for this structure."""

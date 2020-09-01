@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """Unit tests for germinate.germinator."""
 
 # Copyright (C) 2012 Canonical Ltd.
@@ -18,7 +17,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-
+import logging
 import shutil
 
 from germinate.archive import TagFile
@@ -32,7 +31,7 @@ from germinate.germinator import (
     RescueReason,
     SeedReason,
     )
-from germinate.tests.helpers import TestCase, u
+from germinate.tests.helpers import TestCase
 
 
 class TestSeedReason(TestCase):
@@ -155,7 +154,7 @@ class TestGerminator(TestCase):
 
         self.assertIn("hello", germinator._sources)
         self.assertEqual({
-            "Maintainer": u("Test Person <test@example.com>"),
+            "Maintainer": u"Test Person <test@example.com>",
             "Version": "1.0-1",
             "Build-Depends": [],
             "Build-Depends-Indep": [],
@@ -166,7 +165,7 @@ class TestGerminator(TestCase):
         self.assertEqual({
             "Section": "",
             "Version": "1.0-1",
-            "Maintainer": u("Test Person <test@example.com>"),
+            "Maintainer": u"Test Person <test@example.com>",
             "Essential": "",
             "Pre-Depends": [],
             "Built-Using": [],
@@ -184,7 +183,7 @@ class TestGerminator(TestCase):
         self.assertEqual({
             "Section": "",
             "Version": "1.0-1",
-            "Maintainer": u(""),
+            "Maintainer": u"",
             "Essential": "",
             "Pre-Depends": [],
             "Built-Using": [],
@@ -224,19 +223,19 @@ class TestGerminator(TestCase):
         https://wiki.ubuntu.com/MultiarchSpec
         """
         for ma, qual, allowed in (
-            (None, "", True),
-            (None, ":any", False),
-            (None, ":native", False),
-            ("same", "", True),
-            ("same", ":any", False),
-            ("same", ":native", False),
-            ("foreign", "", True),
-            ("foreign", ":any", False),
-            ("foreign", ":native", False),
-            ("allowed", "", True),
-            ("allowed", ":any", True),
-            ("allowed", ":native", False),
-            ):
+                (None, "", True),
+                (None, ":any", False),
+                (None, ":native", False),
+                ("same", "", True),
+                ("same", ":any", False),
+                ("same", ":native", False),
+                ("foreign", "", True),
+                ("foreign", ":any", False),
+                ("foreign", ":native", False),
+                ("allowed", "", True),
+                ("allowed", ":any", True),
+                ("allowed", ":native", False),
+                ):
             self.addSource("precise", "main", "hello", "1.0-1", ["hello"])
             self.addPackage("precise", "main", "i386", "hello", "1.0-1",
                             fields={"Depends": "gettext%s" % qual})
@@ -276,19 +275,19 @@ class TestGerminator(TestCase):
         https://wiki.ubuntu.com/MultiarchCross#Build_Dependencies
         """
         for ma, qual, allowed in (
-            (None, "", True),
-            (None, ":any", False),
-            (None, ":native", True),
-            ("same", "", True),
-            ("same", ":any", False),
-            ("same", ":native", True),
-            ("foreign", "", True),
-            ("foreign", ":any", False),
-            ("foreign", ":native", False),
-            ("allowed", "", True),
-            ("allowed", ":any", True),
-            ("allowed", ":native", True),
-            ):
+                (None, "", True),
+                (None, ":any", False),
+                (None, ":native", True),
+                ("same", "", True),
+                ("same", ":any", False),
+                ("same", ":native", True),
+                ("foreign", "", True),
+                ("foreign", ":any", False),
+                ("foreign", ":native", False),
+                ("allowed", "", True),
+                ("allowed", ":any", True),
+                ("allowed", ":native", True),
+                ):
             self.addSource("precise", "main", "hello", "1.0-1", ["hello"],
                            fields={"Build-Depends": "gettext%s" % qual})
             self.addPackage("precise", "main", "i386", "hello", "1.0-1")
@@ -401,9 +400,6 @@ class TestGerminator(TestCase):
             expected, germinator.get_depends(structure, "supported"))
 
     def test_snap(self):
-        import logging
-        from germinate.log import germinate_logging
-        germinate_logging(logging.INFO)
         branch = "collection.precise"
         self.addSeed(branch, "base")
         self.addSeedSnap(branch, "base", "hello")
@@ -417,13 +413,10 @@ class TestGerminator(TestCase):
             germinator.get_snaps(structure, "base"))
 
     def test_snap_recommends(self):
-        import logging
-        from germinate.log import germinate_logging
-        logger = germinate_logging(logging.INFO)
         branch = "collection.precise"
         self.addSeed(branch, "base")
         self.addSeedSnap(branch, "base", "(hello)")
-        with self.assertLogs(logger, level=logging.WARNING) as logs:
+        with self.assertLogs("germinate", level=logging.WARNING) as logs:
             germinator = Germinator("i386")
             structure = self.openSeedStructure(branch)
             germinator.plant_seeds(structure)

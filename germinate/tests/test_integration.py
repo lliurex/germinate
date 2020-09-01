@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 """Integration tests for germinate."""
 
 # Copyright (C) 2011, 2012 Canonical Ltd.
@@ -18,22 +17,13 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import logging
-
 from germinate.scripts import germinate_main
 from germinate.tests.helpers import TestCase
 
 
 class TestGerminate(TestCase):
-    def addNullHandler(self):
-        handler = logging.NullHandler()
-        logger = logging.getLogger("germinate")
-        logger.addHandler(handler)
-        logger.propagate = False
-
     def runGerminate(self, *args):
         self.useTempDir()
-        self.addNullHandler()
         argv = ["germinate"]
         argv.extend(["-S", "file://%s" % self.seeds_dir])
         argv.extend(["-m", "file://%s" % self.archive_dir])

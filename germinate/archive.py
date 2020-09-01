@@ -31,17 +31,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
-try:
-    from urllib.parse import quote
-    from urllib.request import Request, urlopen
-except ImportError:
-    from urllib import quote
-    from urllib2 import Request, urlopen
 
 import apt_pkg
-
-
-__pychecker__ = 'no-reuseattr'
+import six
+from six.moves.urllib.parse import quote
+from six.moves.urllib.request import Request, urlopen
 
 
 _logger = logging.getLogger(__name__)
@@ -50,11 +44,6 @@ _logger = logging.getLogger(__name__)
 def _progress(msg, *args, **kwargs):
     _logger.info(msg, *args, extra={'progress': True}, **kwargs)
 
-
-if sys.version >= '3':
-    _string_types = str
-else:
-    _string_types = basestring
 
 if sys.version >= '3.1':
     def get_request_type(req):
@@ -99,13 +88,13 @@ class TagFile(Archive):
     def __init__(self, dists, components, arch, mirrors, source_mirrors=None,
                  installer_packages=True, cleanup=False):
         """Create a representation of a Debian-format apt archive."""
-        if isinstance(dists, _string_types):
+        if isinstance(dists, six.string_types):
             dists = [dists]
-        if isinstance(components, _string_types):
+        if isinstance(components, six.string_types):
             components = [components]
-        if isinstance(mirrors, _string_types):
+        if isinstance(mirrors, six.string_types):
             mirrors = [mirrors]
-        if isinstance(source_mirrors, _string_types):
+        if isinstance(source_mirrors, six.string_types):
             source_mirrors = [source_mirrors]
 
         self._dists = dists
@@ -183,10 +172,10 @@ class TagFile(Archive):
                         else:
                             raise RuntimeError("Unknown suffix '%s'" % suffix)
 
-                        with decompressor(compressed) as compressed_f, \
-                             open(fullname, "wb") as f:
-                            f.write(compressed_f.read())
-                            f.flush()
+                        with decompressor(compressed) as compressed_f:
+                            with open(fullname, "wb") as f:
+                                f.write(compressed_f.read())
+                                f.flush()
                 finally:
                     if suffix:
                         try:

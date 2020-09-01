@@ -149,8 +149,8 @@ class Globals:
         else:
             with open(fname) as f:
                 lines = f.readlines()
-        for l in lines:
-            pkg, st = l.split(None)
+        for line in lines:
+            pkg, st = line.split(None)
             self.package.setdefault(pkg, Package(pkg))
             if st == "install" or st == "hold":
                 self.package[pkg].set_installed()
@@ -160,9 +160,9 @@ class Globals:
 
     def output(self):
         for k in sorted(self.package):
-            l = self.package[k].output(self.outmode)
-            if len(l):
-                print(l)
+            line = self.package[k].output(self.outmode)
+            if len(line):
+                print(line)
 
 
 def parse_options(argv):

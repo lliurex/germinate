@@ -49,9 +49,9 @@ class GerminateFormatter(logging.Formatter):
 
 def germinate_logging(level):
     """Configure logging as preferred by Germinate command-line tools."""
-    logging.basicConfig()
     logger = logging.getLogger('germinate')
     if not logger.handlers:
+        logging.basicConfig()
         logger.setLevel(level)
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(GerminateFormatter())

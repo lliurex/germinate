@@ -1,8 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
-"""Expand dependencies in a list of seed packages."""
+"""Lint tests."""
 
-# Copyright (C) 2012 Canonical Ltd.
+# Copyright (C) 2019 Canonical Ltd.
 #
 # Germinate is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -19,15 +17,14 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
+import subprocess
 import sys
 
-try:
-    from germinate.scripts.germinate_main import main
-except ImportError:
-    # Running from build tree?
-    import os
-    sys.path.insert(0, os.path.join(sys.path[0], os.pardir))
-    from germinate.scripts.germinate_main import main
+from germinate.tests.helpers import TestCase
 
-if __name__ == "__main__":
-    main(sys.argv)
+
+class TestLint(TestCase):
+
+    def test_flake8(self):
+        """flake8 output is clean."""
+        subprocess.check_call([sys.executable, "-m", "flake8", "germinate"])

@@ -46,9 +46,6 @@ from germinate.seeds import SeedError, SeedStructure, SeedVcs
 import germinate.version
 
 
-__pychecker__ = 'maxlocals=80'
-
-
 def error_exit(message):
     print("%s: %s" % (sys.argv[0], message), file=sys.stderr)
     sys.exit(1)
@@ -165,7 +162,7 @@ def main(argv):
             mapped_seeds = config.get(dist, "seed_map/%s" % seed_name).split()
         else:
             mapped_seeds = []
-            task_seeds_re = re.compile('^Task-Seeds:\s*(.*)', re.I)
+            task_seeds_re = re.compile(r'^Task-Seeds:\s*(.*)', re.I)
             with structure[seed_name] as seed:
                 for line in seed:
                     task_seeds_match = task_seeds_re.match(line)
@@ -183,7 +180,7 @@ def main(argv):
         if config.has_option(dist, "metapackage_map/%s" % seed_name):
             return config.get(dist, "metapackage_map/%s" % seed_name)
         else:
-            task_meta_re = re.compile('^Task-Metapackage:\s*(.*)', re.I)
+            task_meta_re = re.compile(r'^Task-Metapackage:\s*(.*)', re.I)
             with structure[seed_name] as seed:
                 for line in seed:
                     task_meta_match = task_meta_re.match(line)
@@ -371,7 +368,6 @@ def main(argv):
 
             mergeditems = sorted(merged.items())
             for package, value in mergeditems:
-                #print(package, value)
                 if value == 1:
                     if recommends_merged.get(package, 0) == -1:
                         moves[package].append([seed_name, architecture])
@@ -388,7 +384,6 @@ def main(argv):
 
             mergedrecitems = sorted(recommends_merged.items())
             for package, value in mergedrecitems:
-                #print(package, value)
                 if value == 1:
                     additions[package].append([seed_name_recommends,
                                                architecture])

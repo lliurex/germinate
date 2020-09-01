@@ -31,19 +31,14 @@ import shutil
 import subprocess
 import sys
 import tempfile
-try:
-    from urllib.parse import urljoin, urlparse as _urlparse
-    from urllib.request import Request, URLError, urlopen
-except ImportError:
-    from urlparse import urljoin, urlparse as _urlparse
-    from urllib2 import Request, URLError, urlopen
+
+import six
+from six.moves.urllib.error import URLError
+from six.moves.urllib.parse import urljoin, urlparse
+from six.moves.urllib.request import Request, urlopen
 
 import germinate.defaults
 from germinate.tsort import topo_sort
-
-
-# pychecker gets confused by __next__ for Python 3 support.
-__pychecker__ = 'no-special'
 
 
 __all__ = [
@@ -58,14 +53,6 @@ _logger = logging.getLogger(__name__)
 
 
 _vcs_cache_dir = None
-
-
-if sys.version >= '3':
-    _string_types = str
-    _text_type = str
-else:
-    _string_types = basestring
-    _text_type = unicode
 
 
 class AtomicFile(object):
@@ -91,10 +78,6 @@ class AtomicFile(object):
         if exc_type is None:
             os.rename('%s.new' % self.filename, self.filename)
 
-    # Not really necessary, but reduces pychecker confusion.
-    def write(self, s):
-        self.fd.write(s)
-
 
 class SeedError(RuntimeError):
     """An error opening or parsing a seed."""
@@ -103,10 +86,10 @@ class SeedError(RuntimeError):
 
 
 def _ensure_unicode(s):
-    if isinstance(s, _text_type):
+    if isinstance(s, six.text_type):
         return s
     else:
-        return _text_type(s, "utf8", "replace")
+        return six.text_type(s, "utf8", "replace")
 
 
 class SeedVcs(object):
@@ -122,7 +105,7 @@ class SeedVcs(object):
     GIT = 3
 
 
-class Seed(object):
+class Seed(six.Iterator):
     """A single seed from a collection."""
 
     def _open_seed_bzr(self, base, branch, name):
@@ -190,7 +173,7 @@ class Seed(object):
         if not path.endswith('/'):
             path += '/'
         url = urljoin(path, name)
-        if not _urlparse(url).scheme:
+        if not urlparse(url).scheme:
             fullpath = os.path.join(path, name)
             _logger.info("Using %s", fullpath)
             return open(fullpath)
@@ -223,7 +206,7 @@ class Seed(object):
 
     def __init__(self, bases, branches, name, vcs=None):
         """Read a seed from a collection."""
-        if isinstance(branches, _string_types):
+        if isinstance(branches, six.string_types):
             branches = [branches]
 
         self._name = name
@@ -307,9 +290,6 @@ class Seed(object):
     def __next__(self):
         """Read the next line from this seed."""
         return next(self._file)
-
-    if sys.version < '3':
-        next = __next__
 
     def close(self):
         """Close the file object for this seed."""
@@ -503,7 +483,7 @@ class SeedStructure(collections.Mapping, object):
                 child_structure_name = child_structure_line.split()[0][:-1]
                 for i in range(len(all_structure)):
                     if (all_structure[i].split()[0][:-1] ==
-                        child_structure_name):
+                            child_structure_name):
                         del all_structure[i]
                         break
                 all_structure.append(child_structure_line)
