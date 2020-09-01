@@ -1,8 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
-"""Expand dependencies in a list of seed packages."""
+"""Unit tests for germinate.version."""
 
-# Copyright (C) 2012 Canonical Ltd.
+# Copyright (C) 2019 Canonical Ltd.
 #
 # Germinate is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -19,15 +17,12 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import sys
+from germinate.tests.helpers import TestCase
+from germinate.version import VERSION
 
-try:
-    from germinate.scripts.germinate_main import main
-except ImportError:
-    # Running from build tree?
-    import os
-    sys.path.insert(0, os.path.join(sys.path[0], os.pardir))
-    from germinate.scripts.germinate_main import main
 
-if __name__ == "__main__":
-    main(sys.argv)
+class TestVersion(TestCase):
+    """Ensure that version.txt was properly included in the package."""
+
+    def test_not_local(self):
+        self.assertNotEqual('local', VERSION)

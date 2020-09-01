@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 """Unit tests for germinate.archive."""
 
 # Copyright (C) 2012 Canonical Ltd.
@@ -59,13 +59,13 @@ class TestTagFile(TestCase):
         os.makedirs(source_dir)
         with gzip.GzipFile(
                 os.path.join(binary_dir, "Packages.gz"), "wb") as packages:
-            packages.write(textwrap.dedent(b"""\
+            packages.write(textwrap.dedent(u"""\
                 Package: test
                 Version: 1.0
                 Architecture: i386
-                Maintainer: \xc3\xba\xe1\xb8\x83\xc3\xba\xc3\xb1\xc5\xa7\xc5\xaf\x20\xc4\x91\xc9\x99\x76\xe1\xba\xbd\xc5\x82\xc3\xb5\xe1\xb9\x97\xc3\xa8\xc5\x97\xe1\xb9\xa1
+                Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """.decode("UTF-8")).encode("UTF-8"))
+                """).encode("UTF-8"))
         with gzip.GzipFile(
                 os.path.join(source_dir, "Sources.gz"), "wb") as sources:
             sources.write(textwrap.dedent("""\
@@ -95,13 +95,13 @@ class TestTagFile(TestCase):
         os.makedirs(source_dir)
         with bz2.BZ2File(
                 os.path.join(binary_dir, "Packages.bz2"), "wb") as packages:
-            packages.write(textwrap.dedent(b"""\
+            packages.write(textwrap.dedent(u"""\
                 Package: test
                 Version: 1.0
                 Architecture: i386
-                Maintainer: \xc3\xba\xe1\xb8\x83\xc3\xba\xc3\xb1\xc5\xa7\xc5\xaf\x20\xc4\x91\xc9\x99\x76\xe1\xba\xbd\xc5\x82\xc3\xb5\xe1\xb9\x97\xc3\xa8\xc5\x97\xe1\xb9\xa1
+                Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """.decode("UTF-8")).encode("UTF-8"))
+                """).encode("UTF-8"))
         with bz2.BZ2File(
                 os.path.join(source_dir, "Sources.bz2"), "wb") as sources:
             sources.write(textwrap.dedent("""\
@@ -130,13 +130,13 @@ class TestTagFile(TestCase):
         os.makedirs(binary_dir)
         os.makedirs(source_dir)
         with open(os.path.join(binary_dir, "Packages"), "wb") as packages:
-            packages.write(textwrap.dedent(b"""\
+            packages.write(textwrap.dedent(u"""\
                 Package: test
                 Version: 1.0
                 Architecture: i386
-                Maintainer: \xc3\xba\xe1\xb8\x83\xc3\xba\xc3\xb1\xc5\xa7\xc5\xaf\x20\xc4\x91\xc9\x99\x76\xe1\xba\xbd\xc5\x82\xc3\xb5\xe1\xb9\x97\xc3\xa8\xc5\x97\xe1\xb9\xa1
+                Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """.decode("UTF-8")).encode("UTF-8"))
+                """).encode("UTF-8"))
         subprocess.check_call(["xz", os.path.join(binary_dir, "Packages")])
         with open(os.path.join(source_dir, "Sources"), "wb") as sources:
             sources.write(textwrap.dedent("""\

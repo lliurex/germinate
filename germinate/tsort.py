@@ -23,6 +23,8 @@
 
 import sys
 
+import six
+
 
 __all__ = ["topo_sort", "TopoSorter"]
 
@@ -44,7 +46,7 @@ class GraphCycleError(Exception):
         if sys.version < '3':
             # __str__() should always return a 'str' object
             # never a 'unicode' object.
-            if isinstance(s, unicode):
+            if isinstance(s, six.text_type):
                 return s.encode('utf8')
         return s
 
@@ -87,7 +89,7 @@ class TopoSorter(object):
         # a dict of the graph.
         self._graph = dict(graph)
         self._visitable = set(self._graph)
-        ### if debugging:
+        # if debugging:
         # self._original_graph = dict(graph)
 
         # this is a stack storing the depth first search into the graph.
@@ -108,15 +110,15 @@ class TopoSorter(object):
         """
         return list(self.iter_topo_order())
 
-###        Useful if fiddling with this code.
-###        # cross check
-###        sorted_names = list(self.iter_topo_order())
-###        for index in range(len(sorted_names)):
-###            rev = sorted_names[index]
-###            for left_index in range(index):
-###                if rev in self.original_graph[sorted_names[left_index]]:
-###                    print("revision in parent list of earlier revision")
-###                    import pdb;pdb.set_trace()
+#        Useful if fiddling with this code.
+#        # cross check
+#        sorted_names = list(self.iter_topo_order())
+#        for index in range(len(sorted_names)):
+#            rev = sorted_names[index]
+#            for left_index in range(index):
+#                if rev in self.original_graph[sorted_names[left_index]]:
+#                    print("revision in parent list of earlier revision")
+#                    import pdb;pdb.set_trace()
 
     def iter_topo_order(self):
         """Yield the nodes of the graph in a topological order.

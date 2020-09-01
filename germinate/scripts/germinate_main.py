@@ -187,7 +187,7 @@ def main(argv):
         g.write_depends_list(structure, seedname + ".depends", seedname)
         g.write_build_depends_list(structure,
                                    seedname + ".build-depends", seedname)
-        g.write_snap_list (structure, seedname + ".snaps", seedname)
+        g.write_snap_list(structure, seedname + ".snaps", seedname)
 
         if seedname != "extra" and seedname in structure:
             structure.write_seed_text(seedname + ".seedtext", seedname)
