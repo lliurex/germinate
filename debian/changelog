@@ -1,8 +1,55 @@
-germinate (2.28-lliurex) bionic; urgency=medium
+germinate (2.32-lliurex1) focal; urgency=medium
 
-  * Apply LliureX patches
+  * Add lliurex patches
 
- -- Raul Rodrigo Segura <raurodse@gmail.com>  Wed, 30 May 2018 16:26:13 +0200
+ -- Raul Rodrigo Segura <raurodse@gmail.com>  Wed, 02 Sep 2020 15:44:39 +0200
+
+germinate (2.32) unstable; urgency=medium
+
+  * Remove ancient X-Python-Version and X-Python3-Version fields.
+  * Upgrade to debhelper v9.
+  * Install debhelper extension using debhelper rather than from setup.py.
+  * Convert to pybuild.
+  * Apply "wrap-and-sort -at".
+  * Simplify the approach for injecting the package version.
+  * Add tox testing support.
+  * Drop support for Python 3.2 (which lacked u"..." literals).
+  * Use six instead of hand-written Python 2/3 portability code.
+  * Use testtools rather than plain unittest/unittest2.
+  * Silence noisy logging from test suite.
+  * Switch from pychecker to flake8.
+  * Drop Python 2 binary package (but still supported upstream).
+  * Policy version 4.4.0: no changes required.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 07 Aug 2019 11:43:16 +0100
+
+germinate (2.31) unstable; urgency=medium
+
+  * Set Homepage to https://launchpad.net/germinate (closes: #923388).
+  * Use HTTPS form of copyright-format URL.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 27 Feb 2019 13:05:05 +0000
+
+germinate (2.30) unstable; urgency=medium
+
+  * Build with LC_ALL=C.UTF-8 so that setup.py handles non-ASCII characters
+    in debian/changelog correctly (closes: #913262).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 09 Nov 2018 12:16:27 +0000
+
+germinate (2.29) unstable; urgency=medium
+
+  [ Jelmer Vernooĳ ]
+  * Use secure URI in Vcs control header.
+
+  [ Colin Watson ]
+  * Set Rules-Requires-Root: no.
+
+  [ Steve Langasek ]
+  * Skip use of deprecated 'imp' module, and just try/except the import
+    we actually want.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 07 Nov 2018 12:28:26 +0000
 
 germinate (2.28) unstable; urgency=medium
 
