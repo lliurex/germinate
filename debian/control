@@ -2,40 +2,42 @@ Source: germinate
 Section: utils
 Priority: optional
 Maintainer: Colin Watson <cjwatson@ubuntu.com>
-Standards-Version: 3.9.6
-Build-Depends: debhelper (>= 10), dh-python
-Build-Depends-Indep: python (>= 2.7), python-all, python3 (>= 3.1.2-8~), python3-all, python-setuptools, python3-setuptools, python-apt (>= 0.7.93.2~), python3-apt (>= 0.7.93.2~), python-unittest2
-Vcs-Git: git://git.launchpad.net/germinate
+Standards-Version: 4.4.0
+Build-Depends: debhelper (>= 9~),
+               dh-exec,
+               dh-python,
+Build-Depends-Indep: python3 (>= 3.1.2-8~),
+                     python3-all,
+                     python3-apt (>= 0.7.93.2~),
+                     python3-fixtures,
+                     python3-flake8,
+                     python3-setuptools,
+                     python3-six,
+                     python3-testtools,
+Homepage: https://launchpad.net/germinate
+Vcs-Git: https://git.launchpad.net/germinate
 Vcs-Browser: https://git.launchpad.net/germinate
-X-Python-Version: >= 2.7
-X-Python3-Version: >= 3.2
+Rules-Requires-Root: no
 
 Package: germinate
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, ${perl:Depends}, python3-germinate (= ${binary:Version})
+Depends: python3-germinate (= ${binary:Version}),
+         ${misc:Depends},
+         ${perl:Depends},
+         ${python3:Depends},
 Description: expand dependencies in a list of seed packages
  Germinate takes lists of seed packages and expands their dependencies to
  produce a full list of packages. This can be used for purposes such as
  managing the list of packages present in a derived distribution's archive
  or CD builds.
 
-Package: python-germinate
-Section: python
-Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-apt (>= 0.7.93.2~)
-Description: expand dependencies in seed packages (Python 2 interface)
- Germinate takes lists of seed packages and expands their dependencies to
- produce a full list of packages. This can be used for purposes such as
- managing the list of packages present in a derived distribution's archive
- or CD builds.
- .
- This package provides Python 2 modules used by Germinate, which may also be
- used directly.
-
 Package: python3-germinate
 Section: python
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, python3-apt (>= 0.7.93.2~)
+Depends: python3-apt (>= 0.7.93.2~),
+         python3-pkg-resources,
+         ${misc:Depends},
+         ${python3:Depends},
 Description: expand dependencies in seed packages (Python 3 interface)
  Germinate takes lists of seed packages and expands their dependencies to
  produce a full list of packages. This can be used for purposes such as
