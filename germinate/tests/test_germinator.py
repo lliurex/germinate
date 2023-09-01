@@ -177,6 +177,7 @@ class TestGerminator(TestCase):
             "Provides": [],
             "Kernel-Version": "",
             "Multi-Arch": "none",
+            "Architecture": "i386",
             }, germinator._packages["hello"])
         self.assertEqual("deb", germinator._packagetype["hello"])
         self.assertIn("hello-dependency", germinator._packages)
@@ -195,6 +196,7 @@ class TestGerminator(TestCase):
             "Provides": [],
             "Kernel-Version": "",
             "Multi-Arch": "foreign",
+            "Architecture": "i386",
             }, germinator._packages["hello-dependency"])
         self.assertEqual("deb", germinator._packagetype["hello-dependency"])
         self.assertEqual({}, germinator._provides)
@@ -320,6 +322,44 @@ class TestGerminator(TestCase):
 
             shutil.rmtree(self.archive_dir)
             shutil.rmtree(self.seeds_dir)
+
+    def test_build_depends_all(self):
+        """Confirm build-depends of arch: all packages are recursed when
+        follow-build-depends-all is set, and not when
+        no-follow-build-depends-all is set.
+        """
+        self.addSource("focal", "main", "hello", "1.0-1", ["hello"],
+                       fields={"Build-Depends": "gettext"})
+        self.addPackage("focal", "main", "i386", "hello", "1.0-1",
+                        fields={"Architecture": "all"})
+        self.addSource("focal", "main", "gettext", "0.18.1.1-5ubuntu3",
+                       ["gettext"])
+        self.addPackage("focal", "main", "i386", "gettext",
+                        "0.18.1.1-5ubuntu3")
+        branch = "collection.focal"
+        archive = TagFile(
+            "focal", "main", "i386", "file://%s" % self.archive_dir)
+        for sense in ("no-", ""):
+            self.addSeed(branch, "base")
+            self.addSeedPackage(branch, "base", "hello")
+            self.addStructureLine(branch,
+                                  "feature %sfollow-build-depends-all" % sense)
+            germinator = Germinator("i386")
+            germinator.parse_archive(archive)
+            structure = self.openSeedStructure(branch)
+            germinator.plant_seeds(structure)
+            germinator.grow(structure)
+
+            expected = set()
+            if sense == "":
+                expected.add("gettext")
+            self.assertEqual(
+                expected, germinator.get_build_depends(structure, "base"),
+                "Build-Depends: gettext from Architecture: all package "
+                "incorrectly %s" % "included" if sense == "no-" else "omitted")
+
+            shutil.rmtree(self.seeds_dir)
+        shutil.rmtree(self.archive_dir)
 
     def test_build_depends_profiles(self):
         """Test that https://wiki.debian.org/BuildProfileSpec restrictions
