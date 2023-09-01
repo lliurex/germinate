@@ -22,17 +22,18 @@ from __future__ import print_function
 
 import atexit
 import codecs
-import collections
 import io
 import logging
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
 
 import six
+from six.moves.collections_abc import Mapping
 from six.moves.urllib.error import URLError
 from six.moves.urllib.parse import urljoin, urlparse
 from six.moves.urllib.request import Request, urlopen
@@ -107,6 +108,8 @@ class SeedVcs(object):
 
 class Seed(six.Iterator):
     """A single seed from a collection."""
+    _n_retries = 5  # how many times to try downloading a URL
+    _retry_timeout = 10  # timeout between each of the above retries
 
     def _open_seed_bzr(self, base, branch, name):
         global _vcs_cache_dir
@@ -177,11 +180,20 @@ class Seed(six.Iterator):
             fullpath = os.path.join(path, name)
             _logger.info("Using %s", fullpath)
             return open(fullpath)
-        _logger.info("Downloading %s", url)
         req = Request(url)
         req.add_header('Cache-Control', 'no-cache')
         req.add_header('Pragma', 'no-cache')
-        return urlopen(req)
+        for n in reversed(range(Seed._n_retries)):  # try 5 times
+            try:
+                _logger.info("Downloading %s", url)
+                return urlopen(req, timeout=Seed._retry_timeout)
+            except socket.timeout as e:
+                err = e
+                if n > 0:
+                    _logger.warning("Timed out opening %s, retrying...", url)
+
+        _logger.error("Timed out opening %s, failing.", url)
+        raise err
 
     def _open_seed(self, base, branch, name, vcs=None):
         if vcs is not None:
@@ -425,7 +437,7 @@ class SingleSeedStructure(object):
                 _logger.error("Unparseable seed structure entry: %s", line)
 
 
-class SeedStructure(collections.Mapping, object):
+class SeedStructure(Mapping, object):
     """The full structure of a seed collection.
 
     This deals with acquiring the seed structure files and recursively

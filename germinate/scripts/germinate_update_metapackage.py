@@ -296,7 +296,7 @@ def main(argv):
                 os.rename(output_filename, output_filename + '.old')
 
             # work on the depends
-            new_list = []
+            new_list = set()
             packages = seed_packages(germinator.get_seed_entries,
                                      structure, seed_name)
             for package in packages:
@@ -311,17 +311,16 @@ def main(argv):
                     print("%s/%s: Skipping package %s (essential)" %
                           (seed_name, architecture, package))
                 else:
-                    new_list.append(package)
+                    new_list.add(package)
 
-            new_list.sort()
             with open(output_filename, 'w') as output:
-                for package in new_list:
+                for package in sorted(new_list):
                     output.write(package)
                     output.write('\n')
 
             # work on the recommends
             old_recommends_list = None
-            new_recommends_list = []
+            new_recommends_list = set()
             packages = seed_packages(germinator.get_seed_recommends_entries,
                                      structure, seed_name)
             for package in packages:
@@ -333,9 +332,8 @@ def main(argv):
                     print("%s/%s: Skipping package %s (package not in "
                           "debootstrap)" % (seed_name, architecture, package))
                 else:
-                    new_recommends_list.append(package)
+                    new_recommends_list.add(package)
 
-            new_recommends_list.sort()
             seed_name_recommends = '%s-recommends' % seed_name
             output_recommends_filename = os.path.join(
                 options.outdir, '%s-%s' % (seed_name_recommends, architecture))
@@ -348,7 +346,7 @@ def main(argv):
                     output_recommends_filename + '.old')
 
             with open(output_recommends_filename, 'w') as output:
-                for package in new_recommends_list:
+                for package in sorted(new_recommends_list):
                     output.write(package)
                     output.write('\n')
 
