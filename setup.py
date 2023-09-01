@@ -66,6 +66,6 @@ setup(
         },
     test_suite='germinate.tests',
     # python-apt doesn't build an egg, so we can't use this.
-    #install_requires=['apt>=0.7.93'],
-    #tests_require=['apt>=0.7.93'],
+    # install_requires=['apt>=0.7.93'],
+    # tests_require=['apt>=0.7.93'],
     )
