@@ -1,0 +1,30 @@
+From: Raul Rodrigo <raurodse@gmail.com>
+Date: Wed, 2 Sep 2020 19:50:00 +0200
+Subject: fix errors flake8
+
+---
+ germinate/scripts/germinate_update_metapackage.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/germinate/scripts/germinate_update_metapackage.py b/germinate/scripts/germinate_update_metapackage.py
+index 8c33a95..35636c0 100644
+--- a/germinate/scripts/germinate_update_metapackage.py
++++ b/germinate/scripts/germinate_update_metapackage.py
+@@ -73,7 +73,7 @@ update.cfg.'''
+     parser.add_option('--bzr', dest='vcs', action='store_true',
+                       help='fetch seeds using bzr (requires bzr to be '
+                            'installed; use --vcs instead)')
+-    parser.add_option('-r', '--recursive', dest='recursive', 
++    parser.add_option('-r', '--recursive', dest='recursive',
+                       action='store_true',
+                       default=False,
+                       help="expand all seeds dependencies from STRUCTURE")
+@@ -299,7 +299,7 @@ def main(argv):
+             f = open("seeds/%s/blacklist" % seed_dist)
+             germinator.parse_blacklist(structure, f)
+             blacklist = germinator._output[structure]._blacklist
+-        except Exception :
++        except Exception:
+             pass
+ 
+         print("[%s] Merging seeds with available package lists..." %
