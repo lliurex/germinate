@@ -1,8 +1,52 @@
-germinate (2.32-lliurex1) focal; urgency=medium
+germinate (2.38) unstable; urgency=medium
 
-  * Add lliurex patches
+  * Fix ABC imports for Python 3.10 (closes: #1002401).
 
- -- Raul Rodrigo Segura <raurodse@gmail.com>  Thu, 03 Sep 2020 10:39:24 +0000
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 23 Dec 2021 13:24:31 +0000
+
+germinate (2.37) unstable; urgency=medium
+
+  [ Iain Lane ]
+  * Make fetching over HTTP have a timeout (LP: #1912495).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 05 Mar 2021 21:35:09 +0000
+
+germinate (2.36) unstable; urgency=medium
+
+  [ Christian Ehrhardt ]
+  * Improve ordering of rescued packages (LP: #1895106).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 25 Jan 2021 12:56:40 +0000
+
+germinate (2.35) unstable; urgency=medium
+
+  [ Christian Ehrhardt ]
+  * Report architecture of unknown dependencies.
+
+  [ Paride Legovini ]
+  * germinate_update_metapackage: Fix duplicates handling (LP: #1905987).
+
+ -- Colin Watson <cjwatson@debian.org>  Mon, 25 Jan 2021 12:02:02 +0000
+
+germinate (2.34) unstable; urgency=medium
+
+  * Fix lint errors with latest flake8 (closes: #963390).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 22 Jun 2020 08:35:19 +0100
+
+germinate (2.33) unstable; urgency=medium
+
+  [ Colin Watson ]
+  * Document (no-)follow-build-depends in germinate(1).
+  * Move Build-Depends-Indep to Build-Depends; some of these are needed
+    during the clean target (e.g. python3-setuptools), and since germinate
+    builds no architecture-dependent packages it isn't worth maintaining
+    these lists separately.
+
+  [ Steve Langasek ]
+  * Add a new follow-build-depends-all feature.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Sun, 22 Mar 2020 21:51:51 +0000
 
 germinate (2.32) unstable; urgency=medium
 
