@@ -17,13 +17,20 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
+import errno
 import io
 import os
+import random
+import socket
 import textwrap
+import threading
+
+from fixtures import MockPatch
 
 from germinate.seeds import (
     AtomicFile,
     Seed,
+    SeedError,
     SingleSeedStructure,
     )
 from germinate.tests.helpers import TestCase
@@ -107,6 +114,64 @@ class TestSeed(TestCase):
             lines = list(seed_file)
             self.assertTrue(1, len(lines))
             self.assertTrue(" * foo\n", lines[0])
+
+
+class TestSeedHTTP(TestCase):
+    def setUp(self):
+        """ Make a server which reads anything you send it but never responds
+        to you, to test timeouts are triggered properly. """
+        super(TestSeedHTTP, self).setUp()
+        self.n_hits = 0
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while True:
+            try:
+                self.port = random.randint(1025, 65535)
+                self.server.bind(("localhost", self.port))
+                break
+            except OSError as e:
+                if e.errno != errno.EADDRINUSE:
+                    raise
+        self.server.listen(1)
+
+        def accept():
+            while self.server is not None:
+                try:
+                    (client, _) = self.server.accept()
+                    self.n_hits += 1
+                except (OSError, socket.error) as e:
+                    if e.errno in (errno.EBADF, errno.EINVAL):  # closed
+                        return
+                    raise
+                # We'll read the HTTP request, not reply and the caller should
+                # eventually timeout
+                while True:
+                    if not client.recv(1024):
+                        break
+                client.close()
+
+        self.thread = threading.Thread(target=accept)
+        self.thread.start()
+
+    def tearDown(self):
+        self.server.shutdown(socket.SHUT_RDWR)
+        self.server.close()
+        self.server = None
+        self.thread.join()
+        super(TestSeedHTTP, self).tearDown()
+
+    def test_init_http_timeout(self):
+        """ When we connect to a server which doesn't respond, we timeout. """
+        fixture = MockPatch("germinate.seeds.Seed._retry_timeout", 0.1)
+        with fixture:
+            try:
+                Seed(
+                    ["http://localhost:%s" % self.port],
+                    ["collection.dist"],
+                    "test")
+            except SeedError:
+                self.assertEqual(self.n_hits, 5)
+                return
+            self.assertFalse(True, "SeedError was not raised")
 
 
 class TestSingleSeedStructure(TestCase):
