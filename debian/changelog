@@ -1,3 +1,9 @@
+germinate (2.38-lliurex1) jammy; urgency=medium
+
+  * Apply lliurex patches 
+
+ -- Raul Rodrigo Segura <raurodse@gmail.com>  Fri, 01 Sep 2023 12:24:42 +0200
+
 germinate (2.38) unstable; urgency=medium
 
   * Fix ABC imports for Python 3.10 (closes: #1002401).
