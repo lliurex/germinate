@@ -22,7 +22,6 @@ from __future__ import print_function
 
 from collections import (
     defaultdict,
-    MutableMapping,
     OrderedDict,
     )
 import fnmatch
@@ -31,6 +30,7 @@ import re
 import sys
 
 import apt_pkg
+from six.moves.collections_abc import MutableMapping
 
 from germinate.archive import IndexType
 from germinate.seeds import AtomicFile, SeedStructure, _ensure_unicode
@@ -302,10 +302,10 @@ class GerminatedSeed(object):
             try:
                 left_lesser = self._germinator._strictly_outer_seeds(self)
                 right_lesser = other._germinator._strictly_outer_seeds(other)
-                left_close = [l for l in left_lesser
-                              if self.name in l._close_seeds]
-                right_close = [l for l in right_lesser
-                               if other.name in l._close_seeds]
+                left_close = [s for s in left_lesser
+                              if self.name in s._close_seeds]
+                right_close = [s for s in right_lesser
+                               if other.name in s._close_seeds]
                 if left_close != right_close:
                     return False
                 left_branch = self.structure.branch
@@ -464,6 +464,9 @@ class Germinator(object):
             _ensure_unicode(section.get("Maintainer", ""))
 
         self._packages[pkg]["Essential"] = section.get("Essential", "")
+
+        self._packages[pkg]["Architecture"] = \
+            section.get("Architecture", self._arch)
 
         for field in "Pre-Depends", "Depends", "Recommends", "Built-Using":
             value = section.get(field, "")
@@ -959,7 +962,8 @@ class Germinator(object):
 
             else:
                 # No idea
-                _logger.error("Unknown %s package: %s", seed, pkg)
+                _logger.error("Unknown package %s for seed %s on arch %s",
+                              pkg, seed, self._arch)
 
         for pkg in seedsnaps:
             seed._snaps.add(pkg)
@@ -1252,6 +1256,20 @@ class Germinator(object):
                 return False
         return "no-follow-build-depends" not in structure.features
 
+    def _follow_build_depends_all(self, structure, seed=None):
+        """
+        Test whether Build-Depends should be followed for Architecture: all
+        packages (not required for the special case of partial
+        architectures)
+        Defaults to True if not explicitly specified.
+        """
+        if seed is not None:
+            if "follow-build-depends-all" in seed._features:
+                return True
+            if "no-follow-build-depends-all" in seed._features:
+                return False
+        return "no-follow-build-depends-all" not in structure.features
+
     def _add_reverse(self, pkg, field, rdep):
         """Add a reverse dependency entry."""
         if "Reverse-Depends" not in self._packages[pkg]:
@@ -1375,8 +1393,8 @@ class Germinator(object):
 
         lesserseeds = self._strictly_outer_seeds(seed)
         if close:
-            lesserseeds = [l for l in lesserseeds
-                           if seed.name in l._close_seeds]
+            lesserseeds = [s for s in lesserseeds
+                           if seed.name in s._close_seeds]
         for trydep in trylist:
             for lesserseed in lesserseeds:
                 if (trydep in lesserseed._entries or
@@ -1435,9 +1453,9 @@ class Germinator(object):
                 desc = "recommendation"
             else:
                 desc = "dependency"
-            _logger.error("Unknown %s %s by %s", desc,
+            _logger.error("Unknown %s %s by %s on arch %s", desc,
                           self._unparse_dependency(depname, depver, deptype),
-                          pkg)
+                          pkg, self._arch)
             return False
 
         if dependlist:
@@ -1636,14 +1654,29 @@ class Germinator(object):
                 if pkg_src in output._blacklist:
                     seed._blacklisted.add(pkg_src)
             else:
+                # Special-case not following build dependencies of arch: all
+                # packages
+                if not self._follow_build_depends_all(seed.structure, seed) \
+                   and self._packages[pkg]["Architecture"] == "all":
+                    continue
                 seed._not_build_srcs.add(pkg_src)
                 seed._sourcepkgs.add(pkg_src)
+
+            # Special-case not following build dependencies of arch: all
+            # packages
+            if not self._follow_build_depends_all(seed.structure, seed) and \
+               self._packages[pkg]["Architecture"] == "all":
+                continue
 
             output._all_srcs.add(pkg_src)
             seed._build_srcs.add(pkg_src)
 
             if self._follow_build_depends(seed.structure, seed):
                 for build_depends in BUILD_DEPENDS:
+                    if not self._follow_build_depends_all(seed.structure,
+                                                          seed) and \
+                       build_depends == 'Build-Depends-Indep':
+                        continue
                     self._add_dependency_tree(
                         seed, pkg, self._sources[pkg_src][build_depends],
                         build_depend=True)
@@ -1676,7 +1709,7 @@ class Germinator(object):
 
         # For each source, add any binaries that match the include/exclude
         # patterns.
-        for src in rescue_srcs:
+        for src in sorted(rescue_srcs):
             rescue = [p for p in self._sources[src]["Binaries"]
                       if p in self._packages]
             included = set()
@@ -1686,7 +1719,8 @@ class Germinator(object):
             if rescue_seedname in seed._excludes:
                 for exclude in seed._excludes[rescue_seedname]:
                     included -= set(self._filter_packages(rescue, exclude))
-            for pkg in included:
+
+            for pkg in sorted(included):
                 if pkg in output._all:
                     continue
                 for lesserseed in self._strictly_outer_seeds(seed):
