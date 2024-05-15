@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Expand dependencies in a list of seed packages."""
 
 # Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
@@ -28,10 +27,10 @@ import sys
 
 import germinate.archive
 import germinate.defaults
+import germinate.version
 from germinate.germinator import Germinator
 from germinate.log import germinate_logging
 from germinate.seeds import Seed, SeedError, SeedStructure, SeedVcs
-import germinate.version
 
 
 def check_seed_vcs(option, opt, value):
@@ -45,7 +44,8 @@ def check_seed_vcs(option, opt, value):
         return SeedVcs.GIT
     else:
         raise optparse.OptionValueError(
-            "option %s: unrecognised VCS value: %s" % (opt, value))
+            "option %s: unrecognised VCS value: %s" % (opt, value)
+        )
 
 
 class GerminateOption(optparse.Option):
@@ -58,61 +58,125 @@ class GerminateOption(optparse.Option):
 
 def parse_options(argv):
     parser = optparse.OptionParser(
-        prog='germinate',
-        version='%prog ' + germinate.version.VERSION,
-        option_class=GerminateOption)
-    parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
-                      default=False,
-                      help='be more verbose when processing seeds')
-    parser.add_option('-S', '--seed-source', dest='seeds', metavar='SOURCE',
-                      help='fetch seeds from SOURCE (default: %s)' %
-                           germinate.defaults.seeds)
-    parser.add_option('-s', '--seed-dist', dest='release', metavar='DIST',
-                      default=germinate.defaults.release,
-                      help='fetch seeds for distribution DIST '
-                           '(default: %default)')
-    parser.add_option('-m', '--mirror', dest='mirrors', action='append',
-                      metavar='MIRROR',
-                      help='get package lists from MIRROR (default: %s)' %
-                           germinate.defaults.mirror)
-    parser.add_option('--source-mirror', dest='source_mirrors',
-                      action='append', metavar='MIRROR',
-                      help='get source package lists from mirror '
-                           '(default: value of --mirror)')
-    parser.add_option('-d', '--dist', dest='dist',
-                      default=germinate.defaults.dist,
-                      help='operate on distribution DIST (default: %default)')
-    parser.add_option('-a', '--arch', dest='arch',
-                      default=germinate.defaults.arch,
-                      help='operate on architecture ARCH (default: %default)')
-    parser.add_option('-c', '--components', dest='components',
-                      default='main,restricted', metavar='COMPS',
-                      help='operate on components COMPS (default: %default)')
-    parser.add_option('--vcs', dest='vcs', action='store', type='vcs',
-                      help='version control system to use '
-                           '(auto, bzr, git; defaults to none)')
-    parser.add_option('--bzr', dest='vcs',
-                      action='store_const', const=SeedVcs.BZR,
-                      help='fetch seeds using bzr (requires bzr to be '
-                           'installed; use --vcs=bzr instead)')
-    parser.add_option('--cleanup', dest='cleanup', action='store_true',
-                      default=False,
-                      help="don't cache Packages or Sources files")
-    parser.add_option('--no-rdepends', dest='want_rdepends',
-                      action='store_false', default=True,
-                      help='disable reverse-dependency calculations')
-    parser.add_option('--no-installer', dest='installer', action='store_false',
-                      default=True,
-                      help='do not consider debian-installer udeb packages')
-    parser.add_option('--seed-packages', dest='seed_packages',
-                      metavar='PARENT/PKG,PARENT/PKG,...',
-                      help='treat each PKG as a seed by itself, inheriting '
-                           'from PARENT')
-    parser.add_option('--always-follow-build-depends',
-                      dest='always_follow_build_depends', action='store_true',
-                      default=False,
-                      help='always follow Build-Depends, regardless of seed '
-                           'feature flags')
+        prog="germinate",
+        version="%prog " + germinate.version.VERSION,
+        option_class=GerminateOption,
+    )
+    parser.add_option(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        default=False,
+        help="be more verbose when processing seeds",
+    )
+    parser.add_option(
+        "-S",
+        "--seed-source",
+        dest="seeds",
+        metavar="SOURCE",
+        help="fetch seeds from SOURCE (default: %s)"
+        % germinate.defaults.seeds,
+    )
+    parser.add_option(
+        "-s",
+        "--seed-dist",
+        dest="release",
+        metavar="DIST",
+        default=germinate.defaults.release,
+        help="fetch seeds for distribution DIST " "(default: %default)",
+    )
+    parser.add_option(
+        "-m",
+        "--mirror",
+        dest="mirrors",
+        action="append",
+        metavar="MIRROR",
+        help="get package lists from MIRROR (default: %s)"
+        % germinate.defaults.mirror,
+    )
+    parser.add_option(
+        "--source-mirror",
+        dest="source_mirrors",
+        action="append",
+        metavar="MIRROR",
+        help="get source package lists from mirror "
+        "(default: value of --mirror)",
+    )
+    parser.add_option(
+        "-d",
+        "--dist",
+        dest="dist",
+        default=germinate.defaults.dist,
+        help="operate on distribution DIST (default: %default)",
+    )
+    parser.add_option(
+        "-a",
+        "--arch",
+        dest="arch",
+        default=germinate.defaults.arch,
+        help="operate on architecture ARCH (default: %default)",
+    )
+    parser.add_option(
+        "-c",
+        "--components",
+        dest="components",
+        default="main,restricted",
+        metavar="COMPS",
+        help="operate on components COMPS (default: %default)",
+    )
+    parser.add_option("-C", "--apt-config", dest="apt_config")
+    parser.add_option(
+        "--vcs",
+        dest="vcs",
+        action="store",
+        type="vcs",
+        help="version control system to use "
+        "(auto, bzr, git; defaults to none)",
+    )
+    parser.add_option(
+        "--bzr",
+        dest="vcs",
+        action="store_const",
+        const=SeedVcs.BZR,
+        help="fetch seeds using bzr (requires bzr to be "
+        "installed; use --vcs=bzr instead)",
+    )
+    parser.add_option(
+        "--cleanup",
+        dest="cleanup",
+        action="store_true",
+        default=False,
+        help="don't cache Packages or Sources files",
+    )
+    parser.add_option(
+        "--no-rdepends",
+        dest="want_rdepends",
+        action="store_false",
+        default=True,
+        help="disable reverse-dependency calculations",
+    )
+    parser.add_option(
+        "--no-installer",
+        dest="installer",
+        action="store_false",
+        default=True,
+        help="do not consider debian-installer udeb packages",
+    )
+    parser.add_option(
+        "--seed-packages",
+        dest="seed_packages",
+        metavar="PARENT/PKG,PARENT/PKG,...",
+        help="treat each PKG as a seed by itself, inheriting " "from PARENT",
+    )
+    parser.add_option(
+        "--always-follow-build-depends",
+        dest="always_follow_build_depends",
+        action="store_true",
+        default=False,
+        help="always follow Build-Depends, regardless of seed "
+        "feature flags",
+    )
     options, _ = parser.parse_args(argv[1:])
 
     if options.seeds is None:
@@ -122,17 +186,17 @@ def parse_options(argv):
             options.seeds = germinate.defaults.seeds_git
         else:
             options.seeds = germinate.defaults.seeds_bzr
-    options.seeds = options.seeds.split(',')
+    options.seeds = options.seeds.split(",")
 
     if options.mirrors is None:
         options.mirrors = [germinate.defaults.mirror]
 
-    options.dist = options.dist.split(',')
-    options.components = options.components.split(',')
+    options.dist = options.dist.split(",")
+    options.components = options.components.split(",")
     if options.seed_packages is None:
         options.seed_packages = []
     else:
-        options.seed_packages = options.seed_packages.split(',')
+        options.seed_packages = options.seed_packages.split(",")
 
     return options
 
@@ -148,10 +212,18 @@ def main(argv):
     g = Germinator(options.arch)
     g._always_follow_build_depends = options.always_follow_build_depends
 
-    archive = germinate.archive.TagFile(
-        options.dist, options.components, options.arch,
-        options.mirrors, source_mirrors=options.source_mirrors,
-        installer_packages=options.installer, cleanup=options.cleanup)
+    if options.apt_config:
+        archive = germinate.archive.AptArchive(options.apt_config)
+    else:
+        archive = germinate.archive.TagFile(
+            options.dist,
+            options.components,
+            options.arch,
+            options.mirrors,
+            source_mirrors=options.source_mirrors,
+            installer_packages=options.installer,
+            cleanup=options.cleanup,
+        )
     g.parse_archive(archive)
 
     if os.path.isfile("hints"):
@@ -161,15 +233,16 @@ def main(argv):
     try:
         structure = SeedStructure(options.release, options.seeds, options.vcs)
         for seed_package in options.seed_packages:
-            parent, pkg = seed_package.split('/')
+            parent, pkg = seed_package.split("/")
             structure.add(pkg, [" * " + pkg], parent)
         g.plant_seeds(structure)
     except SeedError:
         sys.exit(1)
 
     try:
-        with Seed(options.seeds, options.release, "blacklist",
-                  options.vcs) as blacklist:
+        with Seed(
+            options.seeds, options.release, "blacklist", options.vcs
+        ) as blacklist:
             g.parse_blacklist(structure, blacklist)
     except SeedError:
         pass
@@ -182,18 +255,21 @@ def main(argv):
     for seedname in structure.names + ["extra"]:
         g.write_full_list(structure, seedname, seedname)
         g.write_seed_list(structure, seedname + ".seed", seedname)
-        g.write_seed_recommends_list(structure,
-                                     seedname + ".seed-recommends", seedname)
+        g.write_seed_recommends_list(
+            structure, seedname + ".seed-recommends", seedname
+        )
         g.write_depends_list(structure, seedname + ".depends", seedname)
-        g.write_build_depends_list(structure,
-                                   seedname + ".build-depends", seedname)
+        g.write_build_depends_list(
+            structure, seedname + ".build-depends", seedname
+        )
         g.write_snap_list(structure, seedname + ".snaps", seedname)
 
         if seedname != "extra" and seedname in structure:
             structure.write_seed_text(seedname + ".seedtext", seedname)
             g.write_sources_list(structure, seedname + ".sources", seedname)
-        g.write_build_sources_list(structure,
-                                   seedname + ".build-sources", seedname)
+        g.write_build_sources_list(
+            structure, seedname + ".build-sources", seedname
+        )
 
     g.write_all_list(structure, "all")
     g.write_all_source_list(structure, "all.sources")
@@ -201,7 +277,8 @@ def main(argv):
 
     g.write_supported_list(structure, "%s+build-depends" % structure.supported)
     g.write_supported_source_list(
-        structure, "%s+build-depends.sources" % structure.supported)
+        structure, "%s+build-depends.sources" % structure.supported
+    )
 
     g.write_all_extra_list(structure, "all+extra")
     g.write_all_extra_source_list(structure, "all+extra.sources")
@@ -222,8 +299,10 @@ def main(argv):
                 os.mkdir(dirname)
 
             g.write_rdepend_list(structure, os.path.join(dirname, pkg), pkg)
-            os.symlink(os.path.join("..", g.get_source(pkg), pkg),
-                       os.path.join("rdepends", "ALL", pkg))
+            os.symlink(
+                os.path.join("..", g.get_source(pkg), pkg),
+                os.path.join("rdepends", "ALL", pkg),
+            )
 
     g.write_blacklisted(structure, "blacklisted")
 

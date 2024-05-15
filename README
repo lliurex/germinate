@@ -9,7 +9,7 @@ for the archive.
 
 	desktop
 	The functionality for our CD.
-		
+
 	supported
 	Everything else we want to support, including the
 	build-dependencies of base and desktop.
@@ -135,14 +135,14 @@ problems with the sets.
 
 	FOO has been placed in multiple seeds.  The better seed
 	always takes precedence (because it gets processed first).
-	
+
     ! Promoted BAR from SET to BETTER-SET to satisfy FOO
 
 	BAR was in the SET seed, but is a dependency of FOO which
 	is in BETTER-SET.  Germinate promotes the package to the
 	better set, you can safely remove it from SET if you want
 	as FOO depends on it.
-	
+
     * Virtual SET package: WIBBLE
       - WOBBLE
       - SNARFLE
@@ -160,7 +160,7 @@ problems with the sets.
 	to satisfy this dependency.
 
 	You can influence this choice by seeding the one you want.
-	
+
     * Chose BAR to satisfy FOO
 
 	FOO depends on a list a possible packages, and none of them

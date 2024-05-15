@@ -1,5 +1,4 @@
-#! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+#! /usr/bin/env python3
 """Expand dependencies in a list of seed packages."""
 
 # Copyright (C) 2012 Canonical Ltd.
@@ -26,6 +25,7 @@ try:
 except ImportError:
     # Running from build tree?
     import os
+
     sys.path.insert(0, os.path.join(sys.path[0], os.pardir))
     from germinate.scripts.germinate_main import main
 

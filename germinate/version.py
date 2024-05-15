@@ -15,15 +15,12 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from __future__ import print_function
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata
 
 try:
-    try:
-        from importlib.resources import read_binary as resource_bytes
-    except ImportError:
-        from pkg_resources import resource_string as resource_bytes
-except ImportError:
-    VERSION = 'local'
-else:
-    VERSION = resource_bytes(
-        'germinate', 'version.txt').decode('UTF-8').rstrip('\n')
+    VERSION = importlib_metadata.version("germinate")
+except importlib_metadata.PackageNotFoundError:
+    VERSION = "(unknown version)"

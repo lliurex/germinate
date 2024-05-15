@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 #               Canonical Ltd.
 #
@@ -27,11 +25,10 @@ import sys
 
 import germinate.archive
 import germinate.defaults
+import germinate.version
 from germinate.germinator import Germinator
 from germinate.log import germinate_logging
 from germinate.seeds import SeedError, SeedStructure
-import germinate.version
-
 
 MIRRORS = [germinate.defaults.mirror]
 COMPONENTS = ["main"]
@@ -65,7 +62,7 @@ class Package:
                 ret += "deinstall"
             else:
                 return ""
-        else:           # default case
+        else:  # default case
             if self.installed and not len(self.seed):
                 ret = "- " + ret
             elif not self.installed and len(self.seed):
@@ -88,14 +85,15 @@ class Globals:
 
         # Suppress most log information
         germinate_logging(logging.CRITICAL)
-        logging.getLogger('germinate.archive').setLevel(logging.INFO)
+        logging.getLogger("germinate.archive").setLevel(logging.INFO)
 
         global MIRRORS, COMPONENTS
         print("Germinating")
         g = Germinator(options.arch)
 
         archive = germinate.archive.TagFile(
-            options.dist, COMPONENTS, options.arch, MIRRORS, cleanup=True)
+            options.dist, COMPONENTS, options.arch, MIRRORS, cleanup=True
+        )
         g.parse_archive(archive)
 
         needed_seeds = []
@@ -103,7 +101,7 @@ class Globals:
         try:
             structure = SeedStructure(options.release, options.seeds)
             for seedname in self.seeds:
-                if seedname == ('%s+build-depends' % structure.supported):
+                if seedname == ("%s+build-depends" % structure.supported):
                     seedname = structure.supported
                     build_tree = True
                 needed_seeds.append(seedname)
@@ -127,19 +125,23 @@ class Globals:
                 build_depends = set(g.get_build_depends(structure, seedname))
                 for inner in structure.inner_seeds(structure.supported):
                     build_depends -= set(g.get_seed_entries(structure, inner))
-                    build_depends -= set(g.get_seed_recommends_entries(
-                        structure, inner))
+                    build_depends -= set(
+                        g.get_seed_recommends_entries(structure, inner)
+                    )
                     build_depends -= g.get_depends(structure, inner)
                 for pkg in build_depends:
                     self.package.setdefault(pkg, Package(pkg))
-                    self.package[pkg].set_seed(structure.supported +
-                                               ".build-depends")
+                    self.package[pkg].set_seed(
+                        structure.supported + ".build-depends"
+                    )
 
     def parse_dpkg(self, fname):
         if fname is None:
-            dpkg_cmd = subprocess.Popen(['dpkg', '--get-selections'],
-                                        stdout=subprocess.PIPE,
-                                        universal_newlines=True)
+            dpkg_cmd = subprocess.Popen(
+                ["dpkg", "--get-selections"],
+                stdout=subprocess.PIPE,
+                universal_newlines=True,
+            )
             try:
                 lines = dpkg_cmd.stdout.readlines()
             finally:
@@ -166,41 +168,71 @@ class Globals:
 
 
 def parse_options(argv):
-    epilog = '''\
+    epilog = """\
 A list of seeds against which to compare may be supplied as non-option
 arguments.  Seeds from which they inherit will be added automatically.  The
-default is 'desktop'.'''
+default is 'desktop'."""
 
     parser = optparse.OptionParser(
-        prog='germinate-pkg-diff',
-        usage='%prog [options] [seeds]',
-        version='%prog ' + germinate.version.VERSION,
-        epilog=epilog)
-    parser.add_option('-l', '--list', dest='dpkg_file', metavar='FILE',
-                      help='read list of packages from this file '
-                           '(default: read from dpkg --get-selections)')
-    parser.add_option('-m', '--mode', dest='mode', type='choice',
-                      choices=('i', 'r', 'd'), default='d', metavar='[i|r|d]',
-                      help='show packages to install/remove/diff (default: d)')
-    parser.add_option('-S', '--seed-source', dest='seeds', metavar='SOURCE',
-                      default=germinate.defaults.seeds,
-                      help='fetch seeds from SOURCE (default: %s)' %
-                           germinate.defaults.seeds)
-    parser.add_option('-s', '--seed-dist', dest='release', metavar='DIST',
-                      default=germinate.defaults.release,
-                      help='fetch seeds for distribution DIST '
-                           '(default: %default)')
-    parser.add_option('-d', '--dist', dest='dist',
-                      default=germinate.defaults.dist,
-                      help='operate on distribution DIST (default: %default)')
-    parser.add_option('-a', '--arch', dest='arch',
-                      default=germinate.defaults.arch,
-                      help='operate on architecture ARCH (default: %default)')
+        prog="germinate-pkg-diff",
+        usage="%prog [options] [seeds]",
+        version="%prog " + germinate.version.VERSION,
+        epilog=epilog,
+    )
+    parser.add_option(
+        "-l",
+        "--list",
+        dest="dpkg_file",
+        metavar="FILE",
+        help="read list of packages from this file "
+        "(default: read from dpkg --get-selections)",
+    )
+    parser.add_option(
+        "-m",
+        "--mode",
+        dest="mode",
+        type="choice",
+        choices=("i", "r", "d"),
+        default="d",
+        metavar="[i|r|d]",
+        help="show packages to install/remove/diff (default: d)",
+    )
+    parser.add_option(
+        "-S",
+        "--seed-source",
+        dest="seeds",
+        metavar="SOURCE",
+        default=germinate.defaults.seeds,
+        help="fetch seeds from SOURCE (default: %s)"
+        % germinate.defaults.seeds,
+    )
+    parser.add_option(
+        "-s",
+        "--seed-dist",
+        dest="release",
+        metavar="DIST",
+        default=germinate.defaults.release,
+        help="fetch seeds for distribution DIST " "(default: %default)",
+    )
+    parser.add_option(
+        "-d",
+        "--dist",
+        dest="dist",
+        default=germinate.defaults.dist,
+        help="operate on distribution DIST (default: %default)",
+    )
+    parser.add_option(
+        "-a",
+        "--arch",
+        dest="arch",
+        default=germinate.defaults.arch,
+        help="operate on architecture ARCH (default: %default)",
+    )
 
     options, args = parser.parse_args(argv[1:])
 
-    options.seeds = options.seeds.split(',')
-    options.dist = options.dist.split(',')
+    options.seeds = options.seeds.split(",")
+    options.dist = options.dist.split(",")
 
     return options, args
 

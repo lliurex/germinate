@@ -43,15 +43,30 @@ class TestGerminate(TestCase):
         return output_dict
 
     def test_trivial(self):
-        self.addSource("warty", "main", "hello", "1.0-1",
-                       ["hello", "hello-dependency"])
-        self.addPackage("warty", "main", "i386", "hello", "1.0-1",
-                        fields={"Depends": "hello-dependency"})
-        self.addPackage("warty", "main", "i386", "hello-dependency", "1.0-1",
-                        fields={"Source": "hello"})
+        self.addSource(
+            "warty", "main", "hello", "1.0-1", ["hello", "hello-dependency"]
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={"Depends": "hello-dependency"},
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello-dependency",
+            "1.0-1",
+            fields={"Source": "hello"},
+        )
         self.addSeed("ubuntu.warty", "supported")
         self.addSeedPackage("ubuntu.warty", "supported", "hello")
-        self.runGerminate("-s", "ubuntu.warty", "-d", "warty", "-c", "main")
+        self.runGerminate(
+            "-s", "ubuntu.warty", "-d", "warty", "-a", "i386", "-c", "main"
+        )
 
         supported = self.parseOutput("supported")
         self.assertTrue("hello" in supported)
@@ -63,13 +78,22 @@ class TestGerminate(TestCase):
 
     def test_snap(self):
         # Need Packages
-        self.addSource("warty", "main", "hello", "1.0-1",
-                       ["hello", "hello-dependency"])
-        self.addPackage("warty", "main", "i386", "hello-dependency", "1.0-1",
-                        fields={"Source": "hello"})
+        self.addSource(
+            "warty", "main", "hello", "1.0-1", ["hello", "hello-dependency"]
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello-dependency",
+            "1.0-1",
+            fields={"Source": "hello"},
+        )
         self.addSeed("ubuntu.warty", "supported")
         self.addSeedSnap("ubuntu.warty", "supported", "mycoolsnap")
-        self.runGerminate("-s", "ubuntu.warty", "-d", "warty", "-c", "main")
+        self.runGerminate(
+            "-s", "ubuntu.warty", "-d", "warty", "-a", "i386", "-c", "main"
+        )
 
         supported = self.parseOutput("supported.snaps")
         self.assertIn("mycoolsnap", supported)
@@ -82,13 +106,22 @@ class TestGerminate(TestCase):
 
     def test_classic_snap(self):
         # Need Packages
-        self.addSource("warty", "main", "hello", "1.0-1",
-                       ["hello", "hello-dependency"])
-        self.addPackage("warty", "main", "i386", "hello-dependency", "1.0-1",
-                        fields={"Source": "hello"})
+        self.addSource(
+            "warty", "main", "hello", "1.0-1", ["hello", "hello-dependency"]
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello-dependency",
+            "1.0-1",
+            fields={"Source": "hello"},
+        )
         self.addSeed("ubuntu.warty", "supported")
         self.addSeedSnap("ubuntu.warty", "supported", "mycoolsnap/classic")
-        self.runGerminate("-s", "ubuntu.warty", "-d", "warty", "-c", "main")
+        self.runGerminate(
+            "-s", "ubuntu.warty", "-d", "warty", "-a", "i386", "-c", "main"
+        )
 
         supported = self.parseOutput("supported.snaps")
         self.assertIn("mycoolsnap (classic)", supported)

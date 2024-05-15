@@ -18,7 +18,6 @@
 # 02110-1301, USA.
 
 import errno
-import io
 import os
 import random
 import socket
@@ -27,12 +26,7 @@ import threading
 
 from fixtures import MockPatch
 
-from germinate.seeds import (
-    AtomicFile,
-    Seed,
-    SeedError,
-    SingleSeedStructure,
-    )
+from germinate.seeds import AtomicFile, Seed, SeedError, SingleSeedStructure
 from germinate.tests.helpers import TestCase
 
 
@@ -55,7 +49,7 @@ class TestAtomicFile(TestCase):
 
 class TestSeed(TestCase):
     def setUp(self):
-        super(TestSeed, self).setUp()
+        super().setUp()
         self.addSeed("collection.dist", "test")
         self.addSeedPackage("collection.dist", "test", "foo")
         self.addSeed("collection.dist", "test2")
@@ -67,7 +61,8 @@ class TestSeed(TestCase):
     def test_init_no_vcs(self):
         """__init__ can open a seed from a collection without a VCS."""
         seed = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test")
+            ["file://%s" % self.seeds_dir], ["collection.dist"], "test"
+        )
         self.assertEqual("test", seed.name)
         self.assertEqual("file://%s" % self.seeds_dir, seed.base)
         self.assertEqual("collection.dist", seed.branch)
@@ -76,7 +71,8 @@ class TestSeed(TestCase):
     def test_init_no_vcs_snap(self):
         """__init__ can open a seed from a collection without a VCS."""
         seed = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test3")
+            ["file://%s" % self.seeds_dir], ["collection.dist"], "test3"
+        )
         self.assertEqual("test3", seed.name)
         self.assertEqual("file://%s" % self.seeds_dir, seed.base)
         self.assertEqual("collection.dist", seed.branch)
@@ -85,7 +81,8 @@ class TestSeed(TestCase):
     def test_behaves_as_file(self):
         """A Seed context can be read from as a file object."""
         seed = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test")
+            ["file://%s" % self.seeds_dir], ["collection.dist"], "test"
+        )
         with seed as seed_file:
             lines = list(seed_file)
             self.assertTrue(1, len(lines))
@@ -93,18 +90,18 @@ class TestSeed(TestCase):
 
     def test_equal_if_same_contents(self):
         """Two Seed objects with the same text contents are equal."""
-        one = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test")
+        one = Seed(["file://%s" % self.seeds_dir], ["collection.dist"], "test")
         two = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test2")
+            ["file://%s" % self.seeds_dir], ["collection.dist"], "test2"
+        )
         self.assertEqual(one, two)
 
     def test_not_equal_if_different_contents(self):
         """Two Seed objects with different text contents are not equal."""
-        one = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test")
+        one = Seed(["file://%s" % self.seeds_dir], ["collection.dist"], "test")
         three = Seed(
-            ["file://%s" % self.seeds_dir], ["collection.dist"], "test3")
+            ["file://%s" % self.seeds_dir], ["collection.dist"], "test3"
+        )
         self.assertNotEqual(one, three)
 
     def test_open_without_scheme(self):
@@ -118,9 +115,9 @@ class TestSeed(TestCase):
 
 class TestSeedHTTP(TestCase):
     def setUp(self):
-        """ Make a server which reads anything you send it but never responds
-        to you, to test timeouts are triggered properly. """
-        super(TestSeedHTTP, self).setUp()
+        """Make a server which reads anything you send it but never responds
+        to you, to test timeouts are triggered properly."""
+        super().setUp()
         self.n_hits = 0
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
@@ -138,7 +135,7 @@ class TestSeedHTTP(TestCase):
                 try:
                     (client, _) = self.server.accept()
                     self.n_hits += 1
-                except (OSError, socket.error) as e:
+                except OSError as e:
                     if e.errno in (errno.EBADF, errno.EINVAL):  # closed
                         return
                     raise
@@ -157,17 +154,18 @@ class TestSeedHTTP(TestCase):
         self.server.close()
         self.server = None
         self.thread.join()
-        super(TestSeedHTTP, self).tearDown()
+        super().tearDown()
 
     def test_init_http_timeout(self):
-        """ When we connect to a server which doesn't respond, we timeout. """
+        """When we connect to a server which doesn't respond, we timeout."""
         fixture = MockPatch("germinate.seeds.Seed._retry_timeout", 0.1)
         with fixture:
             try:
                 Seed(
                     ["http://localhost:%s" % self.port],
                     ["collection.dist"],
-                    "test")
+                    "test",
+                )
             except SeedError:
                 self.assertEqual(self.n_hits, 5)
                 return
@@ -205,7 +203,7 @@ class TestSingleSeedStructure(TestCase):
         seed = Seed(["file://%s" % self.seeds_dir], branch, "STRUCTURE")
         with seed as seed_file:
             structure = SingleSeedStructure(branch, seed_file)
-        self.assertEqual(set(["follow-recommends"]), structure.features)
+        self.assertEqual({"follow-recommends"}, structure.features)
 
 
 class TestSeedStructure(TestCase):
@@ -278,10 +276,12 @@ class TestSeedStructure(TestCase):
         self.addSeedPackage(branch, "four", "four")
         structure = self.openSeedStructure(branch)
         self.assertEqual(
-            sorted(["one", "two", "three", "four"]), sorted(structure.names))
+            sorted(["one", "two", "three", "four"]), sorted(structure.names)
+        )
         structure.limit(["two", "three"])
         self.assertEqual(
-            sorted(["one", "two", "three"]), sorted(structure.names))
+            sorted(["one", "two", "three"]), sorted(structure.names)
+        )
 
     def test_add(self):
         """SeedStructure.add adds a custom seed."""
@@ -298,7 +298,8 @@ class TestSeedStructure(TestCase):
         self.assertIsNone(structure["custom"].base)
         self.assertIsNone(structure["custom"].branch)
         self.assertEqual(
-            " * custom-one\n * custom-two\n", structure["custom"].text)
+            " * custom-one\n * custom-two\n", structure["custom"].text
+        )
 
     def test_write(self):
         """SeedStructure.write writes the text of STRUCTURE."""
@@ -322,12 +323,17 @@ class TestSeedStructure(TestCase):
         structure = self.openSeedStructure(branch)
         structure.write_dot("structure.dot")
         with open("structure.dot") as structure_dot_file:
-            self.assertEqual(textwrap.dedent("""\
+            self.assertEqual(
+                textwrap.dedent(
+                    """\
                 digraph structure {
                     node [color=lightblue2, style=filled];
                     "one" -> "two";
                 }
-                """), structure_dot_file.read())
+                """
+                ),
+                structure_dot_file.read(),
+            )
 
     def test_write_seed_text(self):
         """SeedStructure.write_seed_text writes the text of a seed."""
@@ -345,9 +351,10 @@ class TestSeedStructure(TestCase):
         """SeedStructure.write_seed_text handles UTF-8 text in seeds."""
         branch = "collection.dist"
         self.addSeed(branch, "base")
-        self.addSeedPackage(branch, "base", u"base # \u00e4\u00f6\u00fc")
+        self.addSeedPackage(branch, "base", "base # \u00e4\u00f6\u00fc")
         structure = self.openSeedStructure(branch)
         structure.write_seed_text("base.seedtext", "base")
-        with io.open("base.seedtext", encoding="UTF-8") as seed_file:
+        with open("base.seedtext", encoding="UTF-8") as seed_file:
             self.assertEqual(
-                u" * base # \u00e4\u00f6\u00fc\n", seed_file.read())
+                " * base # \u00e4\u00f6\u00fc\n", seed_file.read()
+            )

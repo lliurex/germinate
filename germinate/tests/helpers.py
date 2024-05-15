@@ -17,23 +17,20 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from __future__ import print_function
-
 import errno
-import io
 import os
 import shutil
 import tempfile
 
-from fixtures import FakeLogger
 import testtools
+from fixtures import FakeLogger
 
 from germinate.seeds import SeedStructure
 
 
 class TestCase(testtools.TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestCase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.temp_dir = None
         self.archive_dir = None
         self.seeds_dir = None
@@ -84,16 +81,19 @@ class TestCase(testtools.TestCase):
                 print("%s: %s" % (key, value), file=sources)
             print(file=sources)
 
-    def addPackage(self, dist, component, arch, pkg, ver, udeb=False,
-                   fields={}):
+    def addPackage(
+        self, dist, component, arch, pkg, ver, udeb=False, fields={}
+    ):
         self.setUpDirs()
         compdir = os.path.join(self.archive_dir, "dists", dist, component)
         if udeb:
-            packages_path = os.path.join(compdir, "debian-installer",
-                                         "binary-%s" % arch, "Packages")
+            packages_path = os.path.join(
+                compdir, "debian-installer", "binary-%s" % arch, "Packages"
+            )
         else:
-            packages_path = os.path.join(compdir, "binary-%s" % arch,
-                                         "Packages")
+            packages_path = os.path.join(
+                compdir, "binary-%s" % arch, "Packages"
+            )
 
         self.ensureParentDir(packages_path)
         with open(packages_path, "a") as packages:
@@ -117,15 +117,15 @@ class TestCase(testtools.TestCase):
         self.setUpDirs()
         seed_path = os.path.join(self.seeds_dir, seed_dist, seed_name)
         self.ensureParentDir(seed_path)
-        with io.open(seed_path, "a", encoding="UTF-8") as seed:
-            print(u" * %s" % pkg, file=seed)
+        with open(seed_path, "a", encoding="UTF-8") as seed:
+            print(" * %s" % pkg, file=seed)
 
     def addSeedSnap(self, seed_dist, seed_name, pkg):
         self.setUpDirs()
         seed_path = os.path.join(self.seeds_dir, seed_dist, seed_name)
         self.ensureParentDir(seed_path)
-        with io.open(seed_path, "a", encoding="UTF-8") as seed:
-            print(u" * snap:%s" % pkg, file=seed)
+        with open(seed_path, "a", encoding="UTF-8") as seed:
+            print(" * snap:%s" % pkg, file=seed)
 
     def openSeedStructure(self, branch):
         return SeedStructure(branch, seed_bases=["file://%s" % self.seeds_dir])
