@@ -12,14 +12,14 @@ export PYBUILD_INSTALL_ARGS_python3 := \
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
-override_dh_auto_build:
-	echo '$(DEB_VERSION)' >germinate/version.txt
-	dh_auto_build
+execute_before_dh_auto_build:
+	sed -i 's/^version = .*/version = $(DEB_VERSION)/' setup.cfg
+
+execute_after_dh_auto_build:
 	set -e; for script in dh_germinate_clean dh_germinate_metapackage; do \
 		pod2man -c Debhelper -r $(DEB_VERSION) \
 			debhelper/$$script debhelper/$$script.1; \
 	done
 
-override_dh_auto_clean:
-	echo '$(DEB_VERSION)' >germinate/version.txt
-	dh_auto_clean
+execute_before_dh_auto_clean:
+	sed -i 's/^version = .*/version = $(DEB_VERSION)/' setup.cfg
