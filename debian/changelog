@@ -1,3 +1,9 @@
+germinate (2.44-lliurex1) noble; urgency=medium
+
+  * Add lliurex patches
+
+ -- Raul Rodrigo Segura <raurodse@gmail.com>  Wed, 15 May 2024 23:08:45 +0200
+
 germinate (2.44) unstable; urgency=medium
 
   * Bump the recursion limit to 6000 (LP: #2058460)
