@@ -21,16 +21,11 @@
 
 """Topological sorting routines."""
 
-import sys
-
-import six
-
 
 __all__ = ["topo_sort", "TopoSorter"]
 
 
 class GraphCycleError(Exception):
-
     _fmt = "Cycle in graph %(graph)r"
 
     def __init__(self, graph):
@@ -41,14 +36,8 @@ class GraphCycleError(Exception):
         d = dict(self.__dict__)
         # special case: python2.5 puts the 'message' attribute in a
         # slot, so it isn't seen in __dict__
-        d['message'] = getattr(self, 'message', 'no message')
-        s = self._fmt % d
-        if sys.version < '3':
-            # __str__() should always return a 'str' object
-            # never a 'unicode' object.
-            if isinstance(s, six.text_type):
-                return s.encode('utf8')
-        return s
+        d["message"] = getattr(self, "message", "no message")
+        return self._fmt % d
 
 
 def topo_sort(graph):
@@ -64,8 +53,7 @@ def topo_sort(graph):
     return TopoSorter(graph).sorted()
 
 
-class TopoSorter(object):
-
+class TopoSorter:
     def __init__(self, graph):
         """Topological sorting of a graph.
 
@@ -110,15 +98,15 @@ class TopoSorter(object):
         """
         return list(self.iter_topo_order())
 
-#        Useful if fiddling with this code.
-#        # cross check
-#        sorted_names = list(self.iter_topo_order())
-#        for index in range(len(sorted_names)):
-#            rev = sorted_names[index]
-#            for left_index in range(index):
-#                if rev in self.original_graph[sorted_names[left_index]]:
-#                    print("revision in parent list of earlier revision")
-#                    import pdb;pdb.set_trace()
+    #    Useful if fiddling with this code.
+    #    # cross check
+    #    sorted_names = list(self.iter_topo_order())
+    #    for index in range(len(sorted_names)):
+    #        rev = sorted_names[index]
+    #        for left_index in range(index):
+    #            if rev in self.original_graph[sorted_names[left_index]]:
+    #                print("revision in parent list of earlier revision")
+    #                import pdb;pdb.set_trace()
 
     def iter_topo_order(self):
         """Yield the nodes of the graph in a topological order.

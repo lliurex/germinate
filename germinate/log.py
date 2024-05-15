@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Custom logging for Germinate."""
 
 # Copyright (c) 2011, 2012 Canonical Ltd.
@@ -28,10 +27,10 @@ class GerminateFormatter(logging.Formatter):
     def __init__(self):
         logging.Formatter.__init__(self)
         self.levels = {
-            logging.DEBUG: '  ',
-            logging.INFO: '* ',
-            logging.WARNING: '! ',
-            logging.ERROR: '? ',
+            logging.DEBUG: "  ",
+            logging.INFO: "* ",
+            logging.WARNING: "! ",
+            logging.ERROR: "? ",
         }
 
     def format(self, record):
@@ -42,14 +41,14 @@ class GerminateFormatter(logging.Formatter):
             pass
 
         try:
-            return '%s%s' % (self.levels[record.levelno], record.getMessage())
+            return "%s%s" % (self.levels[record.levelno], record.getMessage())
         except KeyError:
             return record.getMessage()
 
 
 def germinate_logging(level):
     """Configure logging as preferred by Germinate command-line tools."""
-    logger = logging.getLogger('germinate')
+    logger = logging.getLogger("germinate")
     if not logger.handlers:
         logging.basicConfig()
         logger.setLevel(level)

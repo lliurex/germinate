@@ -81,6 +81,10 @@ following special syntax:
 Seed entries beginning with
 .Sq %
 expand to all binaries from the given source package.
+.It ...|...
+Seed entries may list alternatives to the seeded package to allow metapackages
+to list them, and users to use those alternatives without having to remove the
+metapackages.
 .It [...]
 Seed entries may be followed with
 .Sq " [" Ns Ar arch1 Ar arch2 ... Ns \&]
@@ -233,7 +237,7 @@ Be more verbose when processing seeds.
 .Xc
 Fetch seeds from the specified sources.
 The default is
-.Pa http://people.canonical.com/~ubuntu-archive/seeds/ ,
+.Pa https://ubuntu-archive-team.ubuntu.com/seeds/ ,
 or
 .Pa http://bazaar.launchpad.net/~ubuntu-core-dev/ubuntu-seeds/
 if the
@@ -257,7 +261,7 @@ then you would use the options
 Fetch seeds for distribution
 .Ar dist .
 The default is
-.Li ubuntu.bionic .
+.Li ubuntu.mantic .
 .Pp
 When fetching seeds from git, the part after the rightmost
 .Sq \&.
@@ -283,7 +287,7 @@ across all archives will win.
 .Xc
 Operate on the specified distributions.
 The default is
-.Li bionic .
+.Li mantic .
 Listing multiple distributions may be useful, for example, when examining
 both a released distribution and its security updates.
 .It Xo Fl a ,
@@ -292,13 +296,23 @@ both a released distribution and its security updates.
 Operate on architecture
 .Ar arch .
 The default is
-.Li i386 .
+.Li amd64 .
 .It Xo Fl c ,
 .Fl Fl components Ar component Ns \&,...
 .Xc
 Operate on the specified components.
 The default is
 .Li main .
+.It Xo Fl C ,
+.Fl Fl apt-config Ar conf
+.Xc
+Use apt with APT_CONFIG set to the supplied value to find the
+package and source indices to operate on. Overrides any values passed
+for
+.Fl Fl mirror ,
+.Fl Fl source-mirror ,
+.Fl Fl dist , or
+.Fl Fl components .
 .It Fl Fl vcs Ns = Ns Brq Li auto Ns | Ns Li bzr Ns | Ns Li git
 Check out seeds from a version control system rather than fetching them
 directly from a URL.

@@ -25,4 +25,4 @@ class TestVersion(TestCase):
     """Ensure that version.txt was properly included in the package."""
 
     def test_not_local(self):
-        self.assertNotEqual('local', VERSION)
+        self.assertNotEqual("local", VERSION)

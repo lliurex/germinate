@@ -63,20 +63,20 @@ format.
 .Xc
 Fetch seeds from the specified sources.
 The default is
-.Pa http://people.canonical.com/~ubuntu-archive/seeds/ .
+.Pa https://ubuntu-archive-team.ubuntu.com/seeds/ .
 .It Xo Fl s ,
 .Fl Fl seed\-dist Ar dist
 .Xc
 Fetch seeds for distribution
 .Ar dist .
 The default is
-.Li ubuntu.bionic .
+.Li ubuntu.mantic .
 .It Xo Fl d ,
 .Fl Fl dist Ar dist Ns \&,...
 .Xc
 Operate on the specified distributions.
 The default is
-.Li bionic .
+.Li mantic .
 Listing multiple distributions may be useful, for example, when examining
 both a released distribution and its security updates.
 .It Xo Fl a ,
@@ -85,7 +85,7 @@ both a released distribution and its security updates.
 Operate on architecture
 .Ar arch .
 The default is
-.Li i386 .
+.Li amd64 .
 .El
 .Sh BUGS
 .Fl Fl mode Li r

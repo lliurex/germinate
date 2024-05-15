@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for germinate.archive."""
 
 # Copyright (C) 2012 Canonical Ltd.
@@ -32,8 +31,12 @@ class TestTagFile(TestCase):
     def test_init_lists(self):
         """TagFile may be constructed with list parameters."""
         tagfile = TagFile(
-            ["dist"], ["component"], "arch", ["mirror"],
-            source_mirrors=["source_mirror"])
+            ["dist"],
+            ["component"],
+            "arch",
+            ["mirror"],
+            source_mirrors=["source_mirror"],
+        )
         self.assertEqual(["dist"], tagfile._dists)
         self.assertEqual(["component"], tagfile._components)
         self.assertEqual(["mirror"], tagfile._mirrors)
@@ -42,8 +45,12 @@ class TestTagFile(TestCase):
     def test_init_strings(self):
         """TagFile may be constructed with string parameters."""
         tagfile = TagFile(
-            "dist", "component", "arch", "mirror",
-            source_mirrors="source_mirror")
+            "dist",
+            "component",
+            "arch",
+            "mirror",
+            source_mirrors="source_mirror",
+        )
         self.assertEqual(["dist"], tagfile._dists)
         self.assertEqual(["component"], tagfile._components)
         self.assertEqual(["mirror"], tagfile._mirrors)
@@ -58,24 +65,35 @@ class TestTagFile(TestCase):
         os.makedirs(binary_dir)
         os.makedirs(source_dir)
         with gzip.GzipFile(
-                os.path.join(binary_dir, "Packages.gz"), "wb") as packages:
-            packages.write(textwrap.dedent(u"""\
+            os.path.join(binary_dir, "Packages.gz"), "wb"
+        ) as packages:
+            packages.write(
+                textwrap.dedent(
+                    """\
                 Package: test
                 Version: 1.0
                 Architecture: i386
                 Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
         with gzip.GzipFile(
-                os.path.join(source_dir, "Sources.gz"), "wb") as sources:
-            sources.write(textwrap.dedent("""\
+            os.path.join(source_dir, "Sources.gz"), "wb"
+        ) as sources:
+            sources.write(
+                textwrap.dedent(
+                    """\
                 Source: test
                 Version: 1.0
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
 
         tagfile = TagFile(
-            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir)
+            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir
+        )
         sections = list(tagfile.sections())
         self.assertEqual(IndexType.PACKAGES, sections[0][0])
         self.assertEqual("test", sections[0][1]["Package"])
@@ -94,24 +112,35 @@ class TestTagFile(TestCase):
         os.makedirs(binary_dir)
         os.makedirs(source_dir)
         with bz2.BZ2File(
-                os.path.join(binary_dir, "Packages.bz2"), "wb") as packages:
-            packages.write(textwrap.dedent(u"""\
+            os.path.join(binary_dir, "Packages.bz2"), "wb"
+        ) as packages:
+            packages.write(
+                textwrap.dedent(
+                    """\
                 Package: test
                 Version: 1.0
                 Architecture: i386
                 Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
         with bz2.BZ2File(
-                os.path.join(source_dir, "Sources.bz2"), "wb") as sources:
-            sources.write(textwrap.dedent("""\
+            os.path.join(source_dir, "Sources.bz2"), "wb"
+        ) as sources:
+            sources.write(
+                textwrap.dedent(
+                    """\
                 Source: test
                 Version: 1.0
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
 
         tagfile = TagFile(
-            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir)
+            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir
+        )
         sections = list(tagfile.sections())
         self.assertEqual(IndexType.PACKAGES, sections[0][0])
         self.assertEqual("test", sections[0][1]["Package"])
@@ -130,24 +159,33 @@ class TestTagFile(TestCase):
         os.makedirs(binary_dir)
         os.makedirs(source_dir)
         with open(os.path.join(binary_dir, "Packages"), "wb") as packages:
-            packages.write(textwrap.dedent(u"""\
+            packages.write(
+                textwrap.dedent(
+                    """\
                 Package: test
                 Version: 1.0
                 Architecture: i386
                 Maintainer: úḃúñŧů đəvẽłõṗèŗṡ
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
         subprocess.check_call(["xz", os.path.join(binary_dir, "Packages")])
         with open(os.path.join(source_dir, "Sources"), "wb") as sources:
-            sources.write(textwrap.dedent("""\
+            sources.write(
+                textwrap.dedent(
+                    """\
                 Source: test
                 Version: 1.0
 
-                """).encode("UTF-8"))
+                """
+                ).encode("UTF-8")
+            )
         subprocess.check_call(["xz", os.path.join(source_dir, "Sources")])
 
         tagfile = TagFile(
-            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir)
+            "unstable", "main", "i386", "file://%s/mirror" % self.temp_dir
+        )
         sections = list(tagfile.sections())
         self.assertEqual(IndexType.PACKAGES, sections[0][0])
         self.assertEqual("test", sections[0][1]["Package"])

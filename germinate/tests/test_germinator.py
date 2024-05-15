@@ -30,7 +30,7 @@ from germinate.germinator import (
     RecommendsReason,
     RescueReason,
     SeedReason,
-    )
+)
 from germinate.tests.helpers import TestCase
 
 
@@ -105,9 +105,11 @@ class TestGerminatedSeed(TestCase):
         structure_two = self.openSeedStructure(two)
         germinator = Germinator("i386")
         desktop_one = GerminatedSeed(
-            germinator, "desktop", structure_one, structure_one["desktop"])
+            germinator, "desktop", structure_one, structure_one["desktop"]
+        )
         desktop_two = GerminatedSeed(
-            germinator, "desktop", structure_two, structure_two["desktop"])
+            germinator, "desktop", structure_two, structure_two["desktop"]
+        )
         self.assertEqual(desktop_one, desktop_two)
 
     def test_not_equal_if_different_contents(self):
@@ -126,93 +128,137 @@ class TestGerminatedSeed(TestCase):
         structure_two = self.openSeedStructure(two)
         germinator = Germinator("i386")
         desktop_one = GerminatedSeed(
-            germinator, "desktop", structure_one, structure_one["desktop"])
+            germinator, "desktop", structure_one, structure_one["desktop"]
+        )
         desktop_two = GerminatedSeed(
-            germinator, "desktop", structure_two, structure_two["desktop"])
+            germinator, "desktop", structure_two, structure_two["desktop"]
+        )
         self.assertNotEqual(desktop_one, desktop_two)
 
 
 class TestGerminator(TestCase):
     def test_parse_archive(self):
         """Germinator.parse_archive successfully parses a simple archive."""
-        self.addSource("warty", "main", "hello", "1.0-1",
-                       ["hello", "hello-dependency"],
-                       fields={"Maintainer": "Test Person <test@example.com>"})
-        self.addPackage("warty", "main", "i386", "hello", "1.0-1",
-                        fields={
-                            "Maintainer": "Test Person <test@example.com>",
-                            "Depends": "hello-dependency",
-                            })
-        self.addPackage("warty", "main", "i386", "hello-dependency", "1.0-1",
-                        fields={"Source": "hello", "Multi-Arch": "foreign"})
+        self.addSource(
+            "warty",
+            "main",
+            "hello",
+            "1.0-1",
+            ["hello", "hello-dependency"],
+            fields={"Maintainer": "Test Person <test@example.com>"},
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={
+                "Maintainer": "Test Person <test@example.com>",
+                "Depends": "hello-dependency",
+            },
+        )
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello-dependency",
+            "1.0-1",
+            fields={"Source": "hello", "Multi-Arch": "foreign"},
+        )
         self.addSeed("ubuntu.warty", "supported")
         self.addSeedPackage("ubuntu.warty", "supported", "hello")
         germinator = Germinator("i386")
         archive = TagFile(
-            "warty", "main", "i386", "file://%s" % self.archive_dir)
+            "warty", "main", "i386", "file://%s" % self.archive_dir
+        )
         germinator.parse_archive(archive)
 
         self.assertIn("hello", germinator._sources)
-        self.assertEqual({
-            "Maintainer": u"Test Person <test@example.com>",
-            "Version": "1.0-1",
-            "Build-Depends": [],
-            "Build-Depends-Indep": [],
-            "Build-Depends-Arch": [],
-            "Binaries": ["hello", "hello-dependency"],
-            }, germinator._sources["hello"])
+        self.assertEqual(
+            {
+                "Maintainer": "Test Person <test@example.com>",
+                "Version": "1.0-1",
+                "Build-Depends": [],
+                "Build-Depends-Indep": [],
+                "Build-Depends-Arch": [],
+                "Binaries": ["hello", "hello-dependency"],
+            },
+            germinator._sources["hello"],
+        )
         self.assertIn("hello", germinator._packages)
-        self.assertEqual({
-            "Section": "",
-            "Version": "1.0-1",
-            "Maintainer": u"Test Person <test@example.com>",
-            "Essential": "",
-            "Pre-Depends": [],
-            "Built-Using": [],
-            "Depends": [[("hello-dependency", "", "")]],
-            "Recommends": [],
-            "Size": 0,
-            "Installed-Size": 0,
-            "Source": "hello",
-            "Provides": [],
-            "Kernel-Version": "",
-            "Multi-Arch": "none",
-            "Architecture": "i386",
-            }, germinator._packages["hello"])
+        self.assertEqual(
+            {
+                "Section": "",
+                "Version": "1.0-1",
+                "Maintainer": "Test Person <test@example.com>",
+                "Essential": "",
+                "Pre-Depends": [],
+                "Built-Using": [],
+                "Depends": [[("hello-dependency", "", "")]],
+                "Recommends": [],
+                "Size": 0,
+                "Installed-Size": 0,
+                "Source": "hello",
+                "Provides": [],
+                "Kernel-Version": "",
+                "Multi-Arch": "none",
+                "Architecture": "i386",
+            },
+            germinator._packages["hello"],
+        )
         self.assertEqual("deb", germinator._packagetype["hello"])
         self.assertIn("hello-dependency", germinator._packages)
-        self.assertEqual({
-            "Section": "",
-            "Version": "1.0-1",
-            "Maintainer": u"",
-            "Essential": "",
-            "Pre-Depends": [],
-            "Built-Using": [],
-            "Depends": [],
-            "Recommends": [],
-            "Size": 0,
-            "Installed-Size": 0,
-            "Source": "hello",
-            "Provides": [],
-            "Kernel-Version": "",
-            "Multi-Arch": "foreign",
-            "Architecture": "i386",
-            }, germinator._packages["hello-dependency"])
+        self.assertEqual(
+            {
+                "Section": "",
+                "Version": "1.0-1",
+                "Maintainer": "",
+                "Essential": "",
+                "Pre-Depends": [],
+                "Built-Using": [],
+                "Depends": [],
+                "Recommends": [],
+                "Size": 0,
+                "Installed-Size": 0,
+                "Source": "hello",
+                "Provides": [],
+                "Kernel-Version": "",
+                "Multi-Arch": "foreign",
+                "Architecture": "i386",
+            },
+            germinator._packages["hello-dependency"],
+        )
         self.assertEqual("deb", germinator._packagetype["hello-dependency"])
         self.assertEqual({}, germinator._provides)
 
     def test_different_providers_between_suites(self):
         """Provides from later versions override those from earlier ones."""
         self.addSource("warty", "main", "hello", "1.0-1", ["hello"])
-        self.addPackage("warty", "main", "i386", "hello", "1.0-1",
-                        fields={"Provides": "goodbye"})
+        self.addPackage(
+            "warty",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={"Provides": "goodbye"},
+        )
         self.addSource("warty-updates", "main", "hello", "1.0-1.1", ["hello"])
-        self.addPackage("warty-updates", "main", "i386", "hello", "1.0-1.1",
-                        fields={"Provides": "hello-goodbye"})
+        self.addPackage(
+            "warty-updates",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1.1",
+            fields={"Provides": "hello-goodbye"},
+        )
         germinator = Germinator("i386")
         archive = TagFile(
-            ["warty", "warty-updates"], "main", "i386",
-            "file://%s" % self.archive_dir)
+            ["warty", "warty-updates"],
+            "main",
+            "i386",
+            "file://%s" % self.archive_dir,
+        )
         germinator.parse_archive(archive)
 
         self.assertNotIn("goodbye", germinator._provides)
@@ -225,35 +271,49 @@ class TestGerminator(TestCase):
         https://wiki.ubuntu.com/MultiarchSpec
         """
         for ma, qual, allowed in (
-                (None, "", True),
-                (None, ":any", False),
-                (None, ":native", False),
-                ("same", "", True),
-                ("same", ":any", False),
-                ("same", ":native", False),
-                ("foreign", "", True),
-                ("foreign", ":any", False),
-                ("foreign", ":native", False),
-                ("allowed", "", True),
-                ("allowed", ":any", True),
-                ("allowed", ":native", False),
-                ):
+            (None, "", True),
+            (None, ":any", False),
+            (None, ":native", False),
+            ("same", "", True),
+            ("same", ":any", False),
+            ("same", ":native", False),
+            ("foreign", "", True),
+            ("foreign", ":any", False),
+            ("foreign", ":native", False),
+            ("allowed", "", True),
+            ("allowed", ":any", True),
+            ("allowed", ":native", False),
+        ):
             self.addSource("precise", "main", "hello", "1.0-1", ["hello"])
-            self.addPackage("precise", "main", "i386", "hello", "1.0-1",
-                            fields={"Depends": "gettext%s" % qual})
-            self.addSource("precise", "main", "gettext", "0.18.1.1-5ubuntu3",
-                           ["gettext"])
+            self.addPackage(
+                "precise",
+                "main",
+                "i386",
+                "hello",
+                "1.0-1",
+                fields={"Depends": "gettext%s" % qual},
+            )
+            self.addSource(
+                "precise", "main", "gettext", "0.18.1.1-5ubuntu3", ["gettext"]
+            )
             package_fields = {}
             if ma is not None:
                 package_fields["Multi-Arch"] = ma
-            self.addPackage("precise", "main", "i386", "gettext",
-                            "0.18.1.1-5ubuntu3", fields=package_fields)
+            self.addPackage(
+                "precise",
+                "main",
+                "i386",
+                "gettext",
+                "0.18.1.1-5ubuntu3",
+                fields=package_fields,
+            )
             branch = "collection.precise"
             self.addSeed(branch, "base")
             self.addSeedPackage(branch, "base", "hello")
             germinator = Germinator("i386")
             archive = TagFile(
-                "precise", "main", "i386", "file://%s" % self.archive_dir)
+                "precise", "main", "i386", "file://%s" % self.archive_dir
+            )
             germinator.parse_archive(archive)
             structure = self.openSeedStructure(branch)
             germinator.plant_seeds(structure)
@@ -263,10 +323,15 @@ class TestGerminator(TestCase):
             if allowed:
                 expected.add("gettext")
             self.assertEqual(
-                expected, germinator.get_depends(structure, "base"),
-                "Depends: gettext%s on Multi-Arch: %s incorrectly %s" % (
-                    qual, ma if ma else "none",
-                    "disallowed" if allowed else "allowed"))
+                expected,
+                germinator.get_depends(structure, "base"),
+                "Depends: gettext%s on Multi-Arch: %s incorrectly %s"
+                % (
+                    qual,
+                    ma if ma else "none",
+                    "disallowed" if allowed else "allowed",
+                ),
+            )
 
             shutil.rmtree(self.archive_dir)
             shutil.rmtree(self.seeds_dir)
@@ -277,35 +342,49 @@ class TestGerminator(TestCase):
         https://wiki.ubuntu.com/MultiarchCross#Build_Dependencies
         """
         for ma, qual, allowed in (
-                (None, "", True),
-                (None, ":any", False),
-                (None, ":native", True),
-                ("same", "", True),
-                ("same", ":any", False),
-                ("same", ":native", True),
-                ("foreign", "", True),
-                ("foreign", ":any", False),
-                ("foreign", ":native", False),
-                ("allowed", "", True),
-                ("allowed", ":any", True),
-                ("allowed", ":native", True),
-                ):
-            self.addSource("precise", "main", "hello", "1.0-1", ["hello"],
-                           fields={"Build-Depends": "gettext%s" % qual})
+            (None, "", True),
+            (None, ":any", False),
+            (None, ":native", True),
+            ("same", "", True),
+            ("same", ":any", False),
+            ("same", ":native", True),
+            ("foreign", "", True),
+            ("foreign", ":any", False),
+            ("foreign", ":native", False),
+            ("allowed", "", True),
+            ("allowed", ":any", True),
+            ("allowed", ":native", True),
+        ):
+            self.addSource(
+                "precise",
+                "main",
+                "hello",
+                "1.0-1",
+                ["hello"],
+                fields={"Build-Depends": "gettext%s" % qual},
+            )
             self.addPackage("precise", "main", "i386", "hello", "1.0-1")
-            self.addSource("precise", "main", "gettext", "0.18.1.1-5ubuntu3",
-                           ["gettext"])
+            self.addSource(
+                "precise", "main", "gettext", "0.18.1.1-5ubuntu3", ["gettext"]
+            )
             package_fields = {}
             if ma is not None:
                 package_fields["Multi-Arch"] = ma
-            self.addPackage("precise", "main", "i386", "gettext",
-                            "0.18.1.1-5ubuntu3", fields=package_fields)
+            self.addPackage(
+                "precise",
+                "main",
+                "i386",
+                "gettext",
+                "0.18.1.1-5ubuntu3",
+                fields=package_fields,
+            )
             branch = "collection.precise"
             self.addSeed(branch, "base")
             self.addSeedPackage(branch, "base", "hello")
             germinator = Germinator("i386")
             archive = TagFile(
-                "precise", "main", "i386", "file://%s" % self.archive_dir)
+                "precise", "main", "i386", "file://%s" % self.archive_dir
+            )
             germinator.parse_archive(archive)
             structure = self.openSeedStructure(branch)
             germinator.plant_seeds(structure)
@@ -315,10 +394,15 @@ class TestGerminator(TestCase):
             if allowed:
                 expected.add("gettext")
             self.assertEqual(
-                expected, germinator.get_build_depends(structure, "base"),
-                "Build-Depends: gettext%s on Multi-Arch: %s incorrectly %s" % (
-                    qual, ma if ma else "none",
-                    "disallowed" if allowed else "allowed"))
+                expected,
+                germinator.get_build_depends(structure, "base"),
+                "Build-Depends: gettext%s on Multi-Arch: %s incorrectly %s"
+                % (
+                    qual,
+                    ma if ma else "none",
+                    "disallowed" if allowed else "allowed",
+                ),
+            )
 
             shutil.rmtree(self.archive_dir)
             shutil.rmtree(self.seeds_dir)
@@ -328,22 +412,38 @@ class TestGerminator(TestCase):
         follow-build-depends-all is set, and not when
         no-follow-build-depends-all is set.
         """
-        self.addSource("focal", "main", "hello", "1.0-1", ["hello"],
-                       fields={"Build-Depends": "gettext"})
-        self.addPackage("focal", "main", "i386", "hello", "1.0-1",
-                        fields={"Architecture": "all"})
-        self.addSource("focal", "main", "gettext", "0.18.1.1-5ubuntu3",
-                       ["gettext"])
-        self.addPackage("focal", "main", "i386", "gettext",
-                        "0.18.1.1-5ubuntu3")
+        self.addSource(
+            "focal",
+            "main",
+            "hello",
+            "1.0-1",
+            ["hello"],
+            fields={"Build-Depends": "gettext"},
+        )
+        self.addPackage(
+            "focal",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={"Architecture": "all"},
+        )
+        self.addSource(
+            "focal", "main", "gettext", "0.18.1.1-5ubuntu3", ["gettext"]
+        )
+        self.addPackage(
+            "focal", "main", "i386", "gettext", "0.18.1.1-5ubuntu3"
+        )
         branch = "collection.focal"
         archive = TagFile(
-            "focal", "main", "i386", "file://%s" % self.archive_dir)
+            "focal", "main", "i386", "file://%s" % self.archive_dir
+        )
         for sense in ("no-", ""):
             self.addSeed(branch, "base")
             self.addSeedPackage(branch, "base", "hello")
-            self.addStructureLine(branch,
-                                  "feature %sfollow-build-depends-all" % sense)
+            self.addStructureLine(
+                branch, "feature %sfollow-build-depends-all" % sense
+            )
             germinator = Germinator("i386")
             germinator.parse_archive(archive)
             structure = self.openSeedStructure(branch)
@@ -354,9 +454,13 @@ class TestGerminator(TestCase):
             if sense == "":
                 expected.add("gettext")
             self.assertEqual(
-                expected, germinator.get_build_depends(structure, "base"),
+                expected,
+                germinator.get_build_depends(structure, "base"),
                 "Build-Depends: gettext from Architecture: all package "
-                "incorrectly %s" % "included" if sense == "no-" else "omitted")
+                "incorrectly %s" % "included"
+                if sense == "no-"
+                else "omitted",
+            )
 
             shutil.rmtree(self.seeds_dir)
         shutil.rmtree(self.archive_dir)
@@ -365,60 +469,99 @@ class TestGerminator(TestCase):
         """Test that https://wiki.debian.org/BuildProfileSpec restrictions
         are parseable.
         """
-        self.addSource("precise", "main", "hello", "1.0-1", ["hello"],
-                       fields={"Build-Depends":
-                               "gettext <!stage1> <!cross>, "
-                               "base-files <stage1>, "
-                               "gettext (<< 0.7) | debhelper (>= 9)"})
+        self.addSource(
+            "precise",
+            "main",
+            "hello",
+            "1.0-1",
+            ["hello"],
+            fields={
+                "Build-Depends": "gettext <!stage1> <!cross>, "
+                "base-files <stage1>, "
+                "gettext (<< 0.7) | debhelper (>= 9)"
+            },
+        )
         self.addPackage("precise", "main", "i386", "hello", "1.0-1")
-        self.addSource("precise", "main", "gettext", "0.8.1.1-5ubuntu3",
-                       ["gettext"])
-        self.addPackage("precise", "main", "i386", "gettext",
-                        "0.8.1.1-5ubuntu3")
-        self.addSource("precise", "main", "base-files", "6.5ubuntu6",
-                       ["base-files"])
+        self.addSource(
+            "precise", "main", "gettext", "0.8.1.1-5ubuntu3", ["gettext"]
+        )
+        self.addPackage(
+            "precise", "main", "i386", "gettext", "0.8.1.1-5ubuntu3"
+        )
+        self.addSource(
+            "precise", "main", "base-files", "6.5ubuntu6", ["base-files"]
+        )
         self.addPackage("precise", "main", "i386", "base-files", "6.5ubuntu6")
-        self.addSource("precise", "main", "debhelper", "9.20120115ubuntu3",
-                       ["debhelper"])
-        self.addPackage("precise", "main", "i386", "debhelper",
-                        "9.20120115ubuntu3")
+        self.addSource(
+            "precise", "main", "debhelper", "9.20120115ubuntu3", ["debhelper"]
+        )
+        self.addPackage(
+            "precise", "main", "i386", "debhelper", "9.20120115ubuntu3"
+        )
         branch = "collection.precise"
         self.addSeed(branch, "base")
         self.addSeedPackage(branch, "base", "hello")
         germinator = Germinator("i386")
         archive = TagFile(
-            "precise", "main", "i386", "file://%s" % self.archive_dir)
+            "precise", "main", "i386", "file://%s" % self.archive_dir
+        )
         germinator.parse_archive(archive)
         structure = self.openSeedStructure(branch)
         germinator.plant_seeds(structure)
         germinator.grow(structure)
 
         self.assertEqual(
-            set(["gettext", "debhelper"]),
-            germinator.get_build_depends(structure, "base"))
+            {"gettext", "debhelper"},
+            germinator.get_build_depends(structure, "base"),
+        )
 
     def test_versioned_provides(self):
         """Germinator.parse_archive resolves versioned provides."""
-        self.addSource("bionic", "main", "hello", "1.0-1",
-                       ["hello", "hello-dependency", "hello-bad"],
-                       fields={"Maintainer": "Test Person <test@example.com>"})
-        self.addPackage("bionic", "main", "i386", "hello", "1.0-1",
-                        fields={
-                            "Maintainer": "Test Person <test@example.com>",
-                            "Depends": "hello-virtual (>= 2.0)",
-                            })
-        self.addPackage("bionic", "main", "i386", "hello-bad", "2.0-1",
-                        fields={"Source": "hello (= 1.0-1)",
-                                "Provides": "hello-virtual (= 1.0)"})
-        self.addPackage("bionic", "main", "i386", "hello-dependency", "1.0-1",
-                        fields={"Source": "hello",
-                                "Provides": "hello-virtual (= 2.0)"})
+        self.addSource(
+            "bionic",
+            "main",
+            "hello",
+            "1.0-1",
+            ["hello", "hello-dependency", "hello-bad"],
+            fields={"Maintainer": "Test Person <test@example.com>"},
+        )
+        self.addPackage(
+            "bionic",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={
+                "Maintainer": "Test Person <test@example.com>",
+                "Depends": "hello-virtual (>= 2.0)",
+            },
+        )
+        self.addPackage(
+            "bionic",
+            "main",
+            "i386",
+            "hello-bad",
+            "2.0-1",
+            fields={
+                "Source": "hello (= 1.0-1)",
+                "Provides": "hello-virtual (= 1.0)",
+            },
+        )
+        self.addPackage(
+            "bionic",
+            "main",
+            "i386",
+            "hello-dependency",
+            "1.0-1",
+            fields={"Source": "hello", "Provides": "hello-virtual (= 2.0)"},
+        )
         branch = "ubuntu.bionic"
         self.addSeed(branch, "supported")
         self.addSeedPackage(branch, "supported", "hello")
         germinator = Germinator("i386")
         archive = TagFile(
-            "bionic", "main", "i386", "file://%s" % self.archive_dir)
+            "bionic", "main", "i386", "file://%s" % self.archive_dir
+        )
         germinator.parse_archive(archive)
 
         self.assertIn("hello", germinator._sources)
@@ -430,14 +573,16 @@ class TestGerminator(TestCase):
         self.assertEqual("deb", germinator._packagetype["hello-bad"])
         self.assertEqual(
             {"hello-virtual": {"hello-bad": "1.0", "hello-dependency": "2.0"}},
-            germinator._provides)
+            germinator._provides,
+        )
         structure = self.openSeedStructure(branch)
         germinator.plant_seeds(structure)
         germinator.grow(structure)
 
-        expected = set(["hello-dependency"])
+        expected = {"hello-dependency"}
         self.assertEqual(
-            expected, germinator.get_depends(structure, "supported"))
+            expected, germinator.get_depends(structure, "supported")
+        )
 
     def test_snap(self):
         branch = "collection.precise"
@@ -448,9 +593,7 @@ class TestGerminator(TestCase):
         germinator.plant_seeds(structure)
         germinator.grow(structure)
 
-        self.assertEqual(
-            set(["hello"]),
-            germinator.get_snaps(structure, "base"))
+        self.assertEqual({"hello"}, germinator.get_snaps(structure, "base"))
 
     def test_snap_recommends(self):
         branch = "collection.precise"
@@ -461,10 +604,66 @@ class TestGerminator(TestCase):
             structure = self.openSeedStructure(branch)
             germinator.plant_seeds(structure)
             germinator.grow(structure)
-        self.assertIn('ignoring hello', logs.output[0])
+        self.assertIn("ignoring hello", logs.output[0])
 
+        self.assertEqual(set(), germinator.get_snaps(structure, "base"))
+
+    def test_alternatives(self):
+        """Check the behavior with alternatives for seeds.
+
+        Alternatives should not appear in the seed entries, but must exist
+        in the archive as a real or virtual package, and can be queried using
+        `Germinator.get_seed_alternatives()`
+        """
+        self.addSource(
+            "precise", "main", "hello", "1.0-1", ["hello", "hello-alternative"]
+        )
+        self.addPackage(
+            "precise",
+            "main",
+            "i386",
+            "hello",
+            "1.0-1",
+            fields={"Provides": "some-hello"},
+        )
+        self.addPackage(
+            "precise",
+            "main",
+            "i386",
+            "hello-alternative",
+            "1.0-1",
+            fields={"Provides": "some-hello"},
+        )
+
+        branch = "collection.precise"
+        self.addSeed(branch, "base")
+        self.addSeedPackage(
+            branch,
+            "base",
+            "hello | hello-alternative | some-hello | does-not-exist",
+        )
+        germinator = Germinator("i386")
+        archive = TagFile(
+            "precise", "main", "i386", "file://%s" % self.archive_dir
+        )
+        germinator.parse_archive(archive)
+        structure = self.openSeedStructure(branch)
+        with self.assertLogs() as logs:
+            germinator.plant_seeds(structure)
+        germinator.grow(structure)
         self.assertEqual(
-            set([]),
-            germinator.get_snaps(structure, "base"))
+            logs.output,
+            [
+                "ERROR:germinate.germinator:Unknown alternative package: "
+                "does-not-exist"
+            ],
+        )
+        self.assertEqual(
+            ["hello"], germinator.get_seed_entries(structure, "base")
+        )
+        self.assertEqual(
+            {"hello": ["hello-alternative", "some-hello"]},
+            germinator.get_seed_alternatives(structure, "base"),
+        )
 
     # TODO: Germinator needs many more unit tests.

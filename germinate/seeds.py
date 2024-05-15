@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Fetch seeds from a URL collection or from a VCS."""
 
 # Copyright (c) 2004, 2005, 2006, 2008, 2009, 2011, 2012 Canonical Ltd.
@@ -18,10 +17,7 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from __future__ import print_function
-
 import atexit
-import codecs
 import io
 import logging
 import os
@@ -29,24 +25,20 @@ import re
 import shutil
 import socket
 import subprocess
-import sys
 import tempfile
-
-import six
-from six.moves.collections_abc import Mapping
-from six.moves.urllib.error import URLError
-from six.moves.urllib.parse import urljoin, urlparse
-from six.moves.urllib.request import Request, urlopen
+from collections.abc import Mapping
+from urllib.error import URLError
+from urllib.parse import urljoin, urlparse
+from urllib.request import Request, urlopen
 
 import germinate.defaults
 from germinate.tsort import topo_sort
 
-
 __all__ = [
-    'Seed',
-    'SeedError',
-    'SeedStructure',
-    'SeedVcs',
+    "Seed",
+    "SeedError",
+    "SeedStructure",
+    "SeedVcs",
 ]
 
 
@@ -56,20 +48,17 @@ _logger = logging.getLogger(__name__)
 _vcs_cache_dir = None
 
 
-class AtomicFile(object):
+class AtomicFile:
     """Facilitate atomic writing of files.  Forces UTF-8 encoding."""
 
     def __init__(self, filename):
         self.filename = filename
-        if sys.version_info[0] < 3:
-            self.fd = codecs.open(
-                '%s.new' % self.filename, 'w', 'UTF-8', 'replace')
-        else:
-            # io.open is available from Python 2.6, but we only use it with
-            # Python 3 because it raises exceptions when passed bytes.
-            self.fd = io.open(
-                '%s.new' % self.filename, mode='w',
-                encoding='UTF-8', errors='replace')
+        self.fd = open(
+            "%s.new" % self.filename,
+            mode="w",
+            encoding="UTF-8",
+            errors="replace",
+        )
 
     def __enter__(self):
         return self.fd
@@ -77,7 +66,7 @@ class AtomicFile(object):
     def __exit__(self, exc_type, unused_exc_value, unused_exc_tb):
         self.fd.close()
         if exc_type is None:
-            os.rename('%s.new' % self.filename, self.filename)
+            os.rename("%s.new" % self.filename, self.filename)
 
 
 class SeedError(RuntimeError):
@@ -87,13 +76,13 @@ class SeedError(RuntimeError):
 
 
 def _ensure_unicode(s):
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         return s
     else:
-        return six.text_type(s, "utf8", "replace")
+        return str(s, "utf8", "replace")
 
 
-class SeedVcs(object):
+class SeedVcs:
     """Version control system to use for seeds."""
 
     # Detect from URL.
@@ -106,43 +95,44 @@ class SeedVcs(object):
     GIT = 3
 
 
-class Seed(six.Iterator):
+class Seed:
     """A single seed from a collection."""
+
     _n_retries = 5  # how many times to try downloading a URL
     _retry_timeout = 10  # timeout between each of the above retries
 
     def _open_seed_bzr(self, base, branch, name):
         global _vcs_cache_dir
         if _vcs_cache_dir is None:
-            _vcs_cache_dir = tempfile.mkdtemp(prefix='germinate-')
-            atexit.register(
-                shutil.rmtree, _vcs_cache_dir, ignore_errors=True)
+            _vcs_cache_dir = tempfile.mkdtemp(prefix="germinate-")
+            atexit.register(shutil.rmtree, _vcs_cache_dir, ignore_errors=True)
         checkout = os.path.join(_vcs_cache_dir, branch)
         if not os.path.isdir(checkout):
             path = os.path.join(base, branch)
-            if not path.endswith('/'):
-                path += '/'
-            command = ['bzr']
+            if not path.endswith("/"):
+                path += "/"
+            command = ["bzr"]
             # https://bugs.launchpad.net/bzr/+bug/39542
-            if path.startswith('http:'):
-                command.append('branch')
+            if path.startswith("http:"):
+                command.append("branch")
                 _logger.info("Fetching branch of %s", path)
             else:
-                command.extend(['checkout', '--lightweight'])
+                command.extend(["checkout", "--lightweight"])
                 _logger.info("Checking out %s", path)
             command.extend([path, checkout])
             status = subprocess.call(command)
             if status != 0:
-                raise SeedError("Command failed with exit status %d:\n"
-                                "  '%s'" % (status, ' '.join(command)))
+                raise SeedError(
+                    "Command failed with exit status %d:\n"
+                    "  '%s'" % (status, " ".join(command))
+                )
         return open(os.path.join(checkout, name))
 
     def _open_seed_git(self, base, branch, name):
         global _vcs_cache_dir
         if _vcs_cache_dir is None:
-            _vcs_cache_dir = tempfile.mkdtemp(prefix='germinate-')
-            atexit.register(
-                shutil.rmtree, _vcs_cache_dir, ignore_errors=True)
+            _vcs_cache_dir = tempfile.mkdtemp(prefix="germinate-")
+            atexit.register(shutil.rmtree, _vcs_cache_dir, ignore_errors=True)
         checkout = os.path.join(_vcs_cache_dir, branch)
         if not os.path.isdir(checkout):
             # This is a very strange way to specify a git branch, but it's
@@ -150,39 +140,41 @@ class Seed(six.Iterator):
             # in at least some of Germinate's own command-line arguments,
             # the public Python API, or "include" lines in seed STRUCTURE
             # files.
-            if '.' in branch:
-                repository, git_branch = branch.rsplit('.', 1)
+            if "." in branch:
+                repository, git_branch = branch.rsplit(".", 1)
             else:
                 repository = branch
                 git_branch = None
             path = os.path.join(base, repository)
-            if not path.endswith('/'):
-                path += '/'
-            command = ['git', 'clone']
+            if not path.endswith("/"):
+                path += "/"
+            command = ["git", "clone", "--depth", "1"]
             if git_branch is not None:
-                command.extend(['-b', git_branch])
+                command.extend(["-b", git_branch])
                 _logger.info("Cloning branch %s of %s", git_branch, path)
             else:
                 _logger.info("Cloning %s", path)
             command.extend([path, checkout])
             status = subprocess.call(command)
             if status != 0:
-                raise SeedError("Command failed with exit status %d:\n"
-                                "  '%s'" % (status, ' '.join(command)))
+                raise SeedError(
+                    "Command failed with exit status %d:\n"
+                    "  '%s'" % (status, " ".join(command))
+                )
         return open(os.path.join(checkout, name))
 
     def _open_seed_url(self, base, branch, name):
         path = os.path.join(base, branch)
-        if not path.endswith('/'):
-            path += '/'
+        if not path.endswith("/"):
+            path += "/"
         url = urljoin(path, name)
         if not urlparse(url).scheme:
             fullpath = os.path.join(path, name)
             _logger.info("Using %s", fullpath)
             return open(fullpath)
         req = Request(url)
-        req.add_header('Cache-Control', 'no-cache')
-        req.add_header('Pragma', 'no-cache')
+        req.add_header("Cache-Control", "no-cache")
+        req.add_header("Pragma", "no-cache")
         for n in reversed(range(Seed._n_retries)):  # try 5 times
             try:
                 _logger.info("Downloading %s", url)
@@ -200,9 +192,9 @@ class Seed(six.Iterator):
             if vcs == SeedVcs.AUTO:
                 # Slightly dodgy auto-sensing, but if we can't tell then
                 # we'll try both.
-                if base.startswith('git'):
+                if base.startswith("git"):
                     vcs = SeedVcs.GIT
-                elif base.startswith('bzr'):
+                elif base.startswith("bzr"):
                     vcs = SeedVcs.BZR
             if vcs == SeedVcs.AUTO:
                 try:
@@ -218,7 +210,7 @@ class Seed(six.Iterator):
 
     def __init__(self, bases, branches, name, vcs=None):
         """Read a seed from a collection."""
-        if isinstance(branches, six.string_types):
+        if isinstance(branches, str):
             branches = [branches]
 
         self._name = name
@@ -237,27 +229,31 @@ class Seed(six.Iterator):
                     break
                 except SeedError:
                     ssh_match = re.match(
-                        r'(?:bzr|git)\+ssh://(?:[^/]*?@)?(.*?)(?:/|$)', base)
+                        r"(?:bzr|git)\+ssh://(?:[^/]*?@)?(.*?)(?:/|$)", base
+                    )
                     if ssh_match:
                         ssh_host = ssh_match.group(1)
-                except (OSError, IOError, URLError):
+                except (OSError, URLError):
                     pass
             if fd is not None:
                 break
 
         if fd is None:
             if vcs is not None:
-                _logger.warning("Could not open %s from checkout of (any of):",
-                                name)
+                _logger.warning(
+                    "Could not open %s from checkout of (any of):", name
+                )
                 for base in bases:
                     for branch in branches:
-                        _logger.warning('  %s' % os.path.join(base, branch))
+                        _logger.warning("  %s" % os.path.join(base, branch))
 
                 if ssh_host is not None:
-                    _logger.error("Do you need to set your user name on %s?",
-                                  ssh_host)
-                    _logger.error("Try a section such as this in "
-                                  "~/.ssh/config:")
+                    _logger.error(
+                        "Do you need to set your user name on %s?", ssh_host
+                    )
+                    _logger.error(
+                        "Try a section such as this in " "~/.ssh/config:"
+                    )
                     _logger.error("")
                     _logger.error("Host %s", ssh_host)
                     _logger.error("        User YOUR_USER_NAME")
@@ -266,25 +262,22 @@ class Seed(six.Iterator):
                 for base in bases:
                     for branch in branches:
                         path = os.path.join(base, branch)
-                        if not path.endswith('/'):
-                            path += '/'
-                        _logger.warning('  %s' % urljoin(path, name))
+                        if not path.endswith("/"):
+                            path += "/"
+                        _logger.warning("  %s" % urljoin(path, name))
             raise SeedError("Could not open %s" % name)
 
         try:
             self._text = fd.read()
-            # In Python 3, we need to decode seed text read from URLs.
-            if sys.version_info[0] >= 3 and isinstance(self._text, bytes):
+            # We need to decode seed text read from URLs.
+            if isinstance(self._text, bytes):
                 self._text = self._text.decode(errors="replace")
         finally:
             fd.close()
 
     def open(self):
         """Open a file object with the text of this seed."""
-        if sys.version_info[0] < 3:
-            self._file = io.BytesIO(self._text)
-        else:
-            self._file = io.StringIO(self._text)
+        self._file = io.StringIO(self._text)
         return self._file
 
     def read(self, *args, **kwargs):
@@ -375,10 +368,10 @@ class CustomSeed(Seed):
         self._name = name
         self._base = None
         self._branch = None
-        self._text = '\n'.join(entries) + '\n'
+        self._text = "\n".join(entries) + "\n"
 
 
-class SingleSeedStructure(object):
+class SingleSeedStructure:
     """A single seed collection structure file.
 
     The input data is an ordered sequence of lines as follows:
@@ -418,26 +411,27 @@ class SingleSeedStructure(object):
             line = line.strip()
             if not line:
                 continue
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
             words = line.split()
-            if words[0].endswith(':'):
+            if words[0].endswith(":"):
                 seed = words[0][:-1]
-                if '/' in seed:
+                if "/" in seed:
                     raise SeedError(
-                        "seed name '%s' may not contain '/'" % seed)
+                        "seed name '%s' may not contain '/'" % seed
+                    )
                 self.seed_order.append(seed)
                 self.inherit[seed] = list(words[1:])
                 self.lines.append(line)
-            elif words[0] == 'include':
+            elif words[0] == "include":
                 self.branches.extend(words[1:])
-            elif words[0] == 'feature':
+            elif words[0] == "feature":
                 self.features.update(words[1:])
             else:
                 _logger.error("Unparseable seed structure entry: %s", line)
 
 
-class SeedStructure(Mapping, object):
+class SeedStructure(Mapping):
     """The full structure of a seed collection.
 
     This deals with acquiring the seed structure files and recursively
@@ -454,18 +448,20 @@ class SeedStructure(Mapping, object):
                 seed_bases = germinate.defaults.seeds_git
             else:
                 seed_bases = germinate.defaults.seeds_bzr
-            seed_bases = seed_bases.split(',')
+            seed_bases = seed_bases.split(",")
 
         self._seed_bases = seed_bases
         self._branch = branch
         self._vcs = vcs
         self._features = set()
-        self._seed_order, self._inherit, branches, self._lines = \
-            self._parse(self._branch, set())
+        self._seed_order, self._inherit, branches, self._lines = self._parse(
+            self._branch, set()
+        )
         self._seeds = {}
         for seed in self._seed_order:
             self._seeds[seed] = self.make_seed(
-                seed_bases, branches, seed, vcs=vcs)
+                seed_bases, branches, seed, vcs=vcs
+            )
         self._expand_inheritance()
 
     def _parse(self, branch, got_branches):
@@ -476,7 +472,8 @@ class SeedStructure(Mapping, object):
 
         # Fetch this one
         with self.make_seed(
-                self._seed_bases, branch, "STRUCTURE", self._vcs) as seed:
+            self._seed_bases, branch, "STRUCTURE", self._vcs
+        ) as seed:
             structure = SingleSeedStructure(branch, seed)
         got_branches.add(branch)
 
@@ -484,8 +481,12 @@ class SeedStructure(Mapping, object):
         for child_branch in structure.branches:
             if child_branch in got_branches:
                 continue
-            (child_seed_order, child_inherit, child_branches,
-             child_structure) = self._parse(child_branch, got_branches)
+            (
+                child_seed_order,
+                child_inherit,
+                child_branches,
+                child_structure,
+            ) = self._parse(child_branch, got_branches)
             all_seed_order.extend(child_seed_order)
             all_inherit.update(child_inherit)
             for grandchild_branch in child_branches:
@@ -494,8 +495,10 @@ class SeedStructure(Mapping, object):
             for child_structure_line in child_structure:
                 child_structure_name = child_structure_line.split()[0][:-1]
                 for i in range(len(all_structure)):
-                    if (all_structure[i].split()[0][:-1] ==
-                            child_structure_name):
+                    if (
+                        all_structure[i].split()[0][:-1]
+                        == child_structure_name
+                    ):
                         del all_structure[i]
                         break
                 all_structure.append(child_structure_line)
@@ -634,8 +637,7 @@ class SeedStructure(Mapping, object):
                 if seed not in self._original_inherit:
                     continue
                 for inherit in self._original_inherit[seed]:
-                    print("    \"%s\" -> \"%s\";" % (inherit, seed),
-                          file=dotfile)
+                    print('    "%s" -> "%s";' % (inherit, seed), file=dotfile)
 
             print("}", file=dotfile)
 
@@ -644,4 +646,4 @@ class SeedStructure(Mapping, object):
         with AtomicFile(filename) as f:
             with self._seeds[seedname] as seed:
                 for line in seed:
-                    print(_ensure_unicode(line.rstrip('\n')), file=f)
+                    print(_ensure_unicode(line.rstrip("\n")), file=f)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Representations of archives for use by Germinate."""
 
 # Copyright (c) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
@@ -19,48 +18,27 @@
 # Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-
-from __future__ import print_function
-
-import codecs
-from contextlib import closing, contextmanager
-import io
 import logging
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
+from contextlib import closing
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 import apt_pkg
-import six
-from six.moves.urllib.parse import quote
-from six.moves.urllib.request import Request, urlopen
-
 
 _logger = logging.getLogger(__name__)
 
 
 def _progress(msg, *args, **kwargs):
-    _logger.info(msg, *args, extra={'progress': True}, **kwargs)
-
-
-if sys.version >= '3.1':
-    def get_request_type(req):
-        return req.type
-
-    def get_request_selector(req):
-        return req.selector
-else:
-    def get_request_type(req):
-        return req.get_type()
-
-    def get_request_selector(req):
-        return req.get_selector()
+    _logger.info(msg, *args, extra={"progress": True}, **kwargs)
 
 
 class IndexType:
     """Types of archive index files."""
+
     PACKAGES = 1
     SOURCES = 2
     INSTALLER_PACKAGES = 3
@@ -85,16 +63,24 @@ class Archive:
 class TagFile(Archive):
     """Fetch package lists from a Debian-format archive as apt tag files."""
 
-    def __init__(self, dists, components, arch, mirrors, source_mirrors=None,
-                 installer_packages=True, cleanup=False):
+    def __init__(
+        self,
+        dists,
+        components,
+        arch,
+        mirrors,
+        source_mirrors=None,
+        installer_packages=True,
+        cleanup=False,
+    ):
         """Create a representation of a Debian-format apt archive."""
-        if isinstance(dists, six.string_types):
+        if isinstance(dists, str):
             dists = [dists]
-        if isinstance(components, six.string_types):
+        if isinstance(components, str):
             components = [components]
-        if isinstance(mirrors, six.string_types):
+        if isinstance(mirrors, str):
             mirrors = [mirrors]
-        if isinstance(source_mirrors, six.string_types):
+        if isinstance(source_mirrors, str):
             source_mirrors = [source_mirrors]
 
         self._dists = dists
@@ -108,28 +94,39 @@ class TagFile(Archive):
             self._source_mirrors = mirrors
         self._cleanup = cleanup
 
-    def _open_tag_files(self, mirrors, dirname, tagfile_type,
-                        dist, component, ftppath):
+    def _open_tag_files(
+        self, mirrors, dirname, tagfile_type, dist, component, ftppath
+    ):
         def _open_tag_file(mirror, suffix):
             """Download an apt tag file if needed, then open it."""
-            if not mirror.endswith('/'):
-                mirror += '/'
-            url = (mirror + "dists/" + dist + "/" + component + "/" + ftppath +
-                   suffix)
+            if not mirror.endswith("/"):
+                mirror += "/"
+            url = (
+                mirror
+                + "dists/"
+                + dist
+                + "/"
+                + component
+                + "/"
+                + ftppath
+                + suffix
+            )
             req = Request(url)
             filename = None
 
-            if get_request_type(req) != "file":
-                filename = "%s_%s_%s_%s" % (quote(mirror, safe=""),
-                                            quote(dist, safe=""),
-                                            component, tagfile_type)
+            if req.type != "file":
+                filename = "%s_%s_%s_%s" % (
+                    quote(mirror, safe=""),
+                    quote(dist, safe=""),
+                    component,
+                    tagfile_type,
+                )
             else:
                 # Make a more or less dummy filename for local URLs.
-                filename = os.path.split(get_request_selector(req))[0].replace(
-                    os.sep, "_")
+                filename = os.path.split(req.selector)[0].replace(os.sep, "_")
 
             fullname = os.path.join(dirname, filename)
-            if get_request_type(req) == "file":
+            if req.type == "file":
                 # Always refresh.  TODO: we should use If-Modified-Since for
                 # remote HTTP tag files.
                 try:
@@ -141,34 +138,29 @@ class TagFile(Archive):
 
                 compressed = os.path.join(dirname, filename + suffix)
                 try:
-                    with closing(urlopen(req)) as url_f, \
-                         open(compressed, "wb") as compressed_f:
+                    with closing(urlopen(req)) as url_f, open(
+                        compressed, "wb"
+                    ) as compressed_f:
                         compressed_f.write(url_f.read())
 
                     # apt_pkg is weird and won't accept GzipFile
                     if suffix:
-                        _progress("Decompressing %s file ...",
-                                  req.get_full_url())
+                        _progress(
+                            "Decompressing %s file ...", req.get_full_url()
+                        )
 
                         if suffix == ".gz":
                             import gzip
+
                             decompressor = gzip.GzipFile
                         elif suffix == ".bz2":
                             import bz2
+
                             decompressor = bz2.BZ2File
                         elif suffix == ".xz":
-                            if sys.version >= "3.3":
-                                import lzma
-                                decompressor = lzma.LZMAFile
-                            else:
-                                @contextmanager
-                                def decompressor(name):
-                                    proc = subprocess.Popen(
-                                        ["xzcat", name],
-                                        stdout=subprocess.PIPE)
-                                    yield proc.stdout
-                                    proc.stdout.close()
-                                    proc.wait()
+                            import lzma
+
+                            decompressor = lzma.LZMAFile
                         else:
                             raise RuntimeError("Unknown suffix '%s'" % suffix)
 
@@ -183,11 +175,7 @@ class TagFile(Archive):
                         except OSError:
                             pass
 
-            if sys.version_info[0] < 3:
-                return codecs.open(fullname, 'r', 'UTF-8', 'replace')
-            else:
-                return io.open(fullname, mode='r', encoding='UTF-8',
-                               errors='replace')
+            return open(fullname, encoding="UTF-8", errors="replace")
 
         tag_files = []
         for mirror in mirrors:
@@ -197,10 +185,10 @@ class TagFile(Archive):
                     tag_file = _open_tag_file(mirror, suffix)
                     tag_files.append(tag_file)
                     break
-                except (IOError, OSError):
+                except OSError:
                     pass
         if len(tag_files) == 0:
-            raise IOError("no %s files found" % tagfile_type)
+            raise OSError("no %s files found" % tagfile_type)
         return tag_files
 
     def sections(self):
@@ -216,14 +204,19 @@ class TagFile(Archive):
         if self._cleanup:
             dirname = tempfile.mkdtemp(prefix="germinate-")
         else:
-            dirname = '.'
+            dirname = "."
 
         try:
             for dist in self._dists:
                 for component in self._components:
                     packages = self._open_tag_files(
-                        self._mirrors, dirname, "Packages", dist, component,
-                        "binary-" + self._arch + "/Packages")
+                        self._mirrors,
+                        dirname,
+                        "Packages",
+                        dist,
+                        component,
+                        "binary-" + self._arch + "/Packages",
+                    )
                     for tag_file in packages:
                         try:
                             for section in apt_pkg.TagFile(tag_file):
@@ -232,8 +225,13 @@ class TagFile(Archive):
                             tag_file.close()
 
                     sources = self._open_tag_files(
-                        self._source_mirrors, dirname, "Sources", dist,
-                        component, "source/Sources")
+                        self._source_mirrors,
+                        dirname,
+                        "Sources",
+                        dist,
+                        component,
+                        "source/Sources",
+                    )
                     for tag_file in sources:
                         try:
                             for section in apt_pkg.TagFile(tag_file):
@@ -245,22 +243,77 @@ class TagFile(Archive):
                     if self._installer_packages:
                         try:
                             instpackages = self._open_tag_files(
-                                self._mirrors, dirname, "InstallerPackages",
-                                dist, component,
-                                "debian-installer/binary-" + self._arch +
-                                "/Packages")
-                        except IOError:
+                                self._mirrors,
+                                dirname,
+                                "InstallerPackages",
+                                dist,
+                                component,
+                                "debian-installer/binary-"
+                                + self._arch
+                                + "/Packages",
+                            )
+                        except OSError:
                             # can live without these
-                            _progress("Missing installer Packages file for %s "
-                                      "(ignoring)", component)
+                            _progress(
+                                "Missing installer Packages file for %s "
+                                "(ignoring)",
+                                component,
+                            )
                         else:
                             for tag_file in instpackages:
                                 try:
                                     for section in apt_pkg.TagFile(tag_file):
-                                        yield (IndexType.INSTALLER_PACKAGES,
-                                               section)
+                                        yield (
+                                            IndexType.INSTALLER_PACKAGES,
+                                            section,
+                                        )
                                 finally:
                                     tag_file.close()
         finally:
             if self._cleanup:
                 shutil.rmtree(dirname)
+
+
+class AptArchive(Archive):
+    def __init__(self, config_path):
+        self.config_path = config_path
+
+    def _get_files(self, identifier):
+        env = dict(os.environ, APT_CONFIG=self.config_path)
+        cmd = [
+            "apt-get",
+            "indextargets",
+            "--format",
+            "$(FILENAME)",
+            "Identifier: " + identifier,
+        ]
+        cp = subprocess.run(
+            cmd,
+            env=env,
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        )
+        return cp.stdout.splitlines()
+
+    def sections(self):
+        for filename in self._get_files("Packages"):
+            _progress(
+                "processing packages file %s ...",
+                filename,
+            )
+            with open(
+                filename, encoding="UTF-8", errors="replace"
+            ) as file_obj:
+                for section in apt_pkg.TagFile(file_obj):
+                    yield (IndexType.PACKAGES, section)
+        for filename in self._get_files("Sources"):
+            _progress(
+                "processing sources file %s ...",
+                filename,
+            )
+            with open(
+                filename, encoding="UTF-8", errors="replace"
+            ) as file_obj:
+                for section in apt_pkg.TagFile(file_obj):
+                    yield (IndexType.SOURCES, section)

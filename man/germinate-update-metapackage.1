@@ -198,12 +198,12 @@ the
 source package in the Ubuntu archive:
 .Bd -literal -offset indent
 [DEFAULT]
-dist: bionic
+dist: mantic
 
-[bionic]
+[mantic]
 seeds: desktop full active
 architectures: i386 amd64 powerpc armhf arm64 ppc64el
-seed_base: http://people.canonical.com/~ubuntu-archive/seeds/
+seed_base: https://ubuntu-archive-team.ubuntu.com/seeds/
 seed_dist: kubuntu.%(dist)s
 archive_base/default: http://archive.ubuntu.com/ubuntu/
 archive_base/ports: http://ports.ubuntu.com/ubuntu-ports/
@@ -213,7 +213,7 @@ archive_base/arm64: %(archive_base/ports)s
 archive_base/ppc64el: %(archive_base/ports)s
 components: main restricted universe
 
-[bionic/bzr]
+[mantic/bzr]
 seed_base: bzr+ssh://bazaar.launchpad.net/~kubuntu-dev/ubuntu-seeds/ bzr+ssh://bazaar.launchpad.net/~ubuntu-core-dev/ubuntu-seeds/
 seed_dist: kubuntu.%(dist)s
 .Ed
