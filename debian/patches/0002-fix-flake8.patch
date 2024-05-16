@@ -1,0 +1,30 @@
+From: Raul Rodrigo Segura <raurodse@gmail.com>
+Date: Thu, 16 May 2024 12:59:11 +0200
+Subject: fix flake8
+
+---
+ germinate/germinator.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/germinate/germinator.py b/germinate/germinator.py
+index d0eb840..50955c5 100644
+--- a/germinate/germinator.py
++++ b/germinate/germinator.py
+@@ -822,7 +822,7 @@ class Germinator:
+                 # Special header
+                 name = pkg[:colon]
+                 name = name.lower()
+-                value = pkg[colon + 1 :]
++                value = pkg[colon + 1:]
+                 values = value.strip().split()
+                 if name == "kernel-version":
+                     # Allows us to pick the right modules later
+@@ -880,7 +880,7 @@ class Germinator:
+                 archspec = []
+                 startarchspec = pkg.rfind("[")
+                 if startarchspec != -1:
+-                    archspec = pkg[startarchspec + 1 : -1].split()
++                    archspec = pkg[startarchspec + 1:-1].split()
+                     pkg = pkg[: startarchspec - 1]
+                     posarch = [x for x in archspec if not x.startswith("!")]
+                     negarch = [x[1:] for x in archspec if x.startswith("!")]
