@@ -1,47 +1,45 @@
 From: Raul Rodrigo Segura <raurodse@gmail.com>
-Date: Fri, 1 Sep 2023 15:07:11 +0200
-Subject: lliurex patch
+Date: Thu, 16 May 2024 11:49:48 +0200
+Subject: update patch to noble version
 
 ---
- germinate/germinator.py                           |  8 +++++--
+ germinate/germinator.py                           |  6 ++++-
  germinate/scripts/germinate_update_metapackage.py | 28 +++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 2 deletions(-)
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/germinate/germinator.py b/germinate/germinator.py
-index 8817990..f03286f 100644
+index 838c4ea..d0eb840 100644
 --- a/germinate/germinator.py
 +++ b/germinate/germinator.py
-@@ -850,8 +850,12 @@ class Germinator(object):
-                     if posarch and self._arch not in posarch:
+@@ -890,7 +890,11 @@ class Germinator:
                          continue
  
+             alternatives = pkg.split("|")
 -            pkg = pkg.split()[0]
--
-+            #pkg = pkg.split()[0]
 +            try:
 +                pkg = pkg.split()[0]
 +            except Exception as e:
 +                print(str(e))
 +                pass
-             # a leading ! indicates a per-seed blacklist; never include this
-             # package in the given seed or any of its inner seeds, no matter
-             # what
+             if alternatives:
+                 for alternative in alternatives[1:]:
+                     alternative = alternative.split()[0]
 diff --git a/germinate/scripts/germinate_update_metapackage.py b/germinate/scripts/germinate_update_metapackage.py
-index 103a775..99229ff 100644
+index 39a2c16..57e0311 100644
 --- a/germinate/scripts/germinate_update_metapackage.py
 +++ b/germinate/scripts/germinate_update_metapackage.py
-@@ -73,6 +73,10 @@ update.cfg.'''
-     parser.add_option('--bzr', dest='vcs', action='store_true',
-                       help='fetch seeds using bzr (requires bzr to be '
-                            'installed; use --vcs instead)')
-+    parser.add_option('-r', '--recursive', dest='recursive', 
+@@ -82,6 +82,10 @@ update.cfg."""
+         help="fetch seeds using bzr (requires bzr to be "
+         "installed; use --vcs instead)",
+     )
++    parser.add_option('-r', '--recursive', dest='recursive',
 +                      action='store_true',
 +                      default=False,
 +                      help="expand all seeds dependencies from STRUCTURE")
      return parser.parse_args(argv[1:])
  
  
-@@ -172,6 +176,14 @@ def main(argv):
+@@ -181,6 +185,14 @@ def main(argv):
              if seed_name not in mapped_seeds:
                  mapped_seeds.append(seed_name)
          packages = []
@@ -56,15 +54,15 @@ index 103a775..99229ff 100644
          for mapped_seed in mapped_seeds:
              packages.extend(germinator_method(structure, mapped_seed))
          return packages
-@@ -208,6 +220,7 @@ def main(argv):
-             env['PATH'] = '/usr/sbin:/sbin:/usr/bin:/bin'
-         debootstrap = subprocess.Popen(
-             ['debootstrap', '--arch', arch,
-+             '--no-check-gpg',
-              '--components', ','.join(components),
-              '--print-debs', dist, 'debootstrap-dir', archive_base[arch][0]],
-             stdout=subprocess.PIPE, env=env, stderr=subprocess.PIPE,
-@@ -281,6 +294,14 @@ def main(argv):
+@@ -222,6 +234,7 @@ def main(argv):
+                 "debootstrap",
+                 "--arch",
+                 arch,
++                "--no-check-gpg",
+                 "--components",
+                 ",".join(components),
+                 "--print-debs",
+@@ -317,6 +330,14 @@ def main(argv):
          except SeedError:
              sys.exit(1)
  
@@ -73,30 +71,30 @@ index 103a775..99229ff 100644
 +            f = open("seeds/%s/blacklist" % seed_dist)
 +            germinator.parse_blacklist(structure, f)
 +            blacklist = germinator._output[structure]._blacklist
-+        except Exception :
++        except Exception:
 +            pass
 +
-         print("[%s] Merging seeds with available package lists..." %
-               architecture)
-         for seed_name in output_seeds:
-@@ -299,6 +320,10 @@ def main(argv):
-             new_list = set()
-             packages = seed_packages(germinator.get_seed_entries,
-                                      structure, seed_name)
+         print(
+             "[%s] Merging seeds with available package lists..." % architecture
+         )
+@@ -338,6 +359,10 @@ def main(argv):
+             packages = seed_packages(
+                 germinator.get_seed_entries, structure, seed_name
+             )
 +
 +            semilla = germinator._get_seed(structure, seed_name)
 +            local_blacklist = semilla._blacklist
 +
-             for package in packages:
-                 if package == meta_name:
-                     print("%s/%s: Skipping package %s (metapackage)" %
-@@ -310,6 +335,9 @@ def main(argv):
-                 elif germinator.is_essential(package):
-                     print("%s/%s: Skipping package %s (essential)" %
-                           (seed_name, architecture, package))
+             alternatives = germinator.get_seed_alternatives(
+                 structure, seed_name
+             )
+@@ -359,6 +384,9 @@ def main(argv):
+                         "%s/%s: Skipping package %s (essential)"
+                         % (seed_name, architecture, package)
+                     )
 +                elif package in blacklist or package in local_blacklist:
 +                    print("%s/%s: Skipping blacklisted package %s" %
 +                          (seed_name, architecture, package))
                  else:
-                     new_list.add(package)
- 
+                     try:
+                         new_list.add(
